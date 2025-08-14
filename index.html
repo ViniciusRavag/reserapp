@@ -3,498 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Reservas - Restaurante</title>
+    <title>Sistema de Reserva de Mesas</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Interface Cliente */
-        .client-view {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 40px);
-        }
-
-        .reservation-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 500px;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .datetime-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        /* Confirmação */
-        .confirmation {
-            text-align: center;
-            padding: 30px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.5s ease;
-        }
-
-        .confirmation h2 {
-            color: #4CAF50;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
-        .confirmation p {
-            color: #666;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-
-        #qrcode {
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            display: inline-block;
-        }
-
-        .btn-new {
-            background: #4CAF50;
-            margin-top: 20px;
-        }
-
-        /* Interface Host */
-        .host-view {
-            display: none;
-        }
-
-        .host-header {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .host-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filter-group label {
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .filter-group input, .filter-group select {
-            width: auto;
-            padding: 8px 12px;
-        }
-
-        .reservations-grid {
-            display: grid;
-            gap: 20px;
-        }
-
-        .reservation-item {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .reservation-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .reservation-info {
-            flex: 1;
-        }
-
-        .reservation-name {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .reservation-details {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .reservation-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-action {
-            padding: 8px 16px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-confirm {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .btn-checkin {
-            background: #2196F3;
-            color: white;
-        }
-
-        .btn-noshow {
-            background: #f44336;
-            color: white;
-        }
-
-        .btn-action:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-
-        .status-pending {
-            background: #FFF3E0;
-            color: #F57C00;
-        }
-
-        .status-confirmed {
-            background: #E8F5E9;
-            color: #388E3C;
-        }
-
-        .status-present {
-            background: #E3F2FD;
-            color: #1976D2;
-        }
-
-        .status-noshow {
-            background: #FFEBEE;
-            color: #C62828;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .empty-state h3 {
-            color: #999;
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            color: #bbb;
-        }
-
-        /* Responsividade */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; color: white; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        .client-interface, .host-interface { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; transition: all 0.3s ease; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #667eea; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%; text-transform: uppercase; }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
+        .confirmation { background: #d4edda; border: 2px solid #c3e6cb; color: #155724; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; display: none; }
+        .confirmation.show { display: block; animation: slideIn 0.5s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .qr-container { text-align: center; margin: 20px 0; display: none; }
+        .qr-container.show { display: block; }
+        .qr-container canvas { border: 3px solid #667eea; border-radius: 10px; margin: 10px 0; }
+        .host-interface { overflow: hidden; }
+        .host-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; position: relative; }
+        .host-content { padding: 30px; }
+        .filters { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+        .filter-group { display: flex; flex-direction: column; min-width: 150px; }
+        .filter-group label { margin-bottom: 5px; font-weight: 600; color: #555; }
+        .filter-group input, .filter-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; }
+        .reservations-list { display: grid; gap: 20px; }
+        .reservation-card { background: white; border: 2px solid #e0e0e0; border-radius: 15px; padding: 25px; transition: all 0.3s ease; position: relative; }
+        .reservation-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .reservation-card.confirmed { border-color: #28a745; }
+        .reservation-card.checked-in { border-color: #007bff; }
+        .reservation-card.no-show { border-color: #dc3545; }
+        .reservation-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .info-item { display: flex; flex-direction: column; }
+        .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
+        .info-value { font-size: 16px; font-weight: 600; }
+        .reservation-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-small { padding: 8px 15px; font-size: 14px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.3s ease; font-weight: 500; color: white; }
+        .btn-confirm { background: #28a745; }
+        .btn-checkin { background: #007bff; }
+        .btn-noshow { background: #dc3545; }
+        .btn-small:hover { transform: translateY(-2px); }
+        .status-badge { position: absolute; top: 15px; right: 15px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: white; }
+        .status-pending { background: #ffc107; color: #333; }
+        .status-confirmed { background: #28a745; }
+        .status-checked-in { background: #007bff; }
+        .status-no-show { background: #dc3545; }
+        .hidden { display: none !important; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #667eea; }
+        .stat-label { color: #666; margin-top: 5px; }
         @media (max-width: 768px) {
-            .datetime-group {
-                grid-template-columns: 1fr;
-            }
-
-            .filters {
-                flex-direction: column;
-            }
-
-            .reservation-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .reservation-actions {
-                margin-top: 15px;
-                width: 100%;
-            }
-
-            .btn-action {
-                flex: 1;
-            }
-        }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: white;
-        }
-
-        .loading::after {
-            content: "...";
-            animation: dots 1.5s infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: "."; }
-            40% { content: ".."; }
-            60%, 100% { content: "..."; }
+            .client-interface, .host-content { padding: 20px; }
+            .reservation-info { grid-template-columns: 1fr; }
+            .filters { flex-direction: column; }
+            .filter-group { width: 100%; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Interface Cliente -->
-        <div class="client-view" id="clientView">
-            <div class="reservation-card" id="reservationForm">
-                <h1>Reserve sua Mesa</h1>
-                <p class="subtitle">Preencha os dados abaixo para fazer sua reserva</p>
-                
-                <form id="bookingForm">
-                    <div class="form-group">
-                        <label for="name">Nome Completo</label>
-                        <input type="text" id="name" required placeholder="Digite seu nome">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="phone">Telefone</label>
-                        <input type="tel" id="phone" required placeholder="(11) 98765-4321">
-                    </div>
-                    
-                    <div class="datetime-group">
-                        <div class="form-group">
-                            <label for="date">Data</label>
-                            <input type="date" id="date" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="time">Horário</label>
-                            <select id="time" required>
-                                <option value="">Selecione</option>
-                                <option value="11:00">11:00</option>
-                                <option value="11:30">11:30</option>
-                                <option value="12:00">12:00</option>
-                                <option value="12:30">12:30</option>
-                                <option value="13:00">13:00</option>
-                                <option value="13:30">13:30</option>
-                                <option value="14:00">14:00</option>
-                                <option value="18:00">18:00</option>
-                                <option value="18:30">18:30</option>
-                                <option value="19:00">19:00</option>
-                                <option value="19:30">19:30</option>
-                                <option value="20:00">20:00</option>
-                                <option value="20:30">20:30</option>
-                                <option value="21:00">21:00</option>
-                                <option value="21:30">21:30</option>
-                                <option value="22:00">22:00</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="people">Número de Pessoas</label>
-                        <select id="people" required>
-                            <option value="">Selecione</option>
-                            <option value="1">1 pessoa</option>
-                            <option value="2">2 pessoas</option>
-                            <option value="3">3 pessoas</option>
-                            <option value="4">4 pessoas</option>
-                            <option value="5">5 pessoas</option>
-                            <option value="6">6 pessoas</option>
-                            <option value="7">7 pessoas</option>
-                            <option value="8">8 pessoas</option>
-                            <option value="9">9 pessoas</option>
-                            <option value="10">10+ pessoas</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit">Fazer Reserva</button>
-                </form>
+        <div class="header">
+            <h1 id="main-title">🍽️ Restaurante Elegante</h1>
+            <p id="main-subtitle">Sistema de Reservas</p>
+        </div>
+
+        <!-- Interface do Cliente -->
+        <div id="client-view" class="client-interface">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Fazer Reserva</h2>
+            <form id="reservation-form">
+                <div class="form-group"><label for="client-name">Nome Completo</label><input type="text" id="client-name" required></div>
+                <div class="form-group"><label for="client-phone">Telefone</label><input type="tel" id="client-phone" required placeholder="(11) 99999-9999"></div>
+                <div class="form-group"><label for="reservation-date">Data</label><input type="date" id="reservation-date" required></div>
+                <div class="form-group">
+                    <label for="reservation-time">Horário</label>
+                    <select id="reservation-time" required>
+                        <option value="">Selecione um horário</option>
+                        <option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="party-size">Número de Pessoas</label>
+                    <select id="party-size" required>
+                        <option value="">Quantas pessoas?</option>
+                        <option value="1">1 pessoa</option><option value="2">2 pessoas</option><option value="3">3 pessoas</option><option value="4">4 pessoas</option><option value="5">5 pessoas</option><option value="6">6 pessoas</option><option value="7">7 pessoas</option><option value="8">8 pessoas</option><option value="9+">9 ou mais pessoas</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Fazer Reserva</button>
+            </form>
+            <div id="confirmation-message" class="confirmation"></div>
+            <div id="qr-container" class="qr-container">
+                <h4>QR Code da sua Reserva</h4><p>Apresente este código na chegada:</p><canvas id="qr-canvas"></canvas><button class="btn" id="download-qr-btn">Baixar QR Code</button>
             </div>
         </div>
 
-        <!-- Interface Host -->
-        <div class="host-view" id="hostView">
-            <div class="host-header">
-                <div class="host-title">
-                    <h1>Painel de Reservas</h1>
-                    <div id="currentDateTime"></div>
+        <!-- Interface do Anfitrião -->
+        <div id="host-view" class="host-interface hidden">
+            <div class="host-header"><h2>🏪 Painel do Anfitrião</h2><p>Gerencie as reservas do restaurante</p></div>
+            <div class="host-content">
+                <div id="main-panel" class="hidden">
+                    <div class="stats">
+                        <div class="stat-card"><div class="stat-number" id="total-reservations">0</div><div class="stat-label">Total de Reservas</div></div>
+                        <div class="stat-card"><div class="stat-number" id="confirmed-reservations">0</div><div class="stat-label">Confirmadas</div></div>
+                        <div class="stat-card"><div class="stat-number" id="checkedin-reservations">0</div><div class="stat-label">Check-in Feito</div></div>
+                        <div class="stat-card"><div class="stat-number" id="noshow-reservations">0</div><div class="stat-label">Não Compareceram</div></div>
+                    </div>
+                    <div class="filters">
+                        <div class="filter-group"><label for="filter-date">Data</label><input type="date" id="filter-date"></div>
+                        <div class="filter-group">
+                            <label for="filter-status">Status</label>
+                            <select id="filter-status">
+                                <option value="">Todos</option><option value="pending">Pendente</option><option value="confirmed">Confirmada</option><option value="checked-in">Check-in</option><option value="no-show">Não Compareceu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="reservations-list" class="reservations-list"></div>
                 </div>
-                
-                <div class="filters">
-                    <div class="filter-group">
-                        <label for="filterDate">Data:</label>
-                        <input type="date" id="filterDate">
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="filterTime">Horário:</label>
-                        <select id="filterTime">
-                            <option value="">Todos</option>
-                            <option value="11:00">11:00</option>
-                            <option value="11:30">11:30</option>
-                            <option value="12:00">12:00</option>
-                            <option value="12:30">12:30</option>
-                            <option value="13:00">13:00</option>
-                            <option value="13:30">13:30</option>
-                            <option value="14:00">14:00</option>
-                            <option value="18:00">18:00</option>
-                            <option value="18:30">18:30</option>
-                            <option value="19:00">19:00</option>
-                            <option value="19:30">19:30</option>
-                            <option value="20:00">20:00</option>
-                            <option value="20:30">20:30</option>
-                            <option value="21:00">21:00</option>
-                            <option value="21:30">21:30</option>
-                            <option value="22:00">22:00</option>
-                        </select>
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label for="filterStatus">Status:</label>
-                        <select id="filterStatus">
-                            <option value="">Todos</option>
-                            <option value="pending">Pendente</option>
-                            <option value="confirmed">Confirmada</option>
-                            <option value="present">Presente</option>
-                            <option value="noshow">Não Compareceu</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="reservations-grid" id="reservationsList">
-                <div class="loading">Carregando reservas</div>
             </div>
         </div>
     </div>
 
     <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    
-    <script>
-        // Configuração do Firebase (adicione suas credenciais aqui)
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Importações do Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
+        
+        // =================================================================================
+        // COLE AQUI O OBJETO DE CONFIGURAÇÃO DO SEU PROJETO FIREBASE
+        // =================================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCGXNRpRxEqHQxyxzHmT6pcnxd6eFy8iQM",
             authDomain: "sistema-de-reserva-56c90.firebaseapp.com",
@@ -503,379 +147,222 @@
             messagingSenderId: "818842876841",
             appId: "1:818842876841:web:e616fa6aba6faeacf062b8"
         };
+
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Referência para a coleção de reservas
+        const reservationsCollection = collection(db, 'reservas');
+
+        // =================================================================================
+        // LÓGICA DA APLICAÇÃO
+        // =================================================================================
         
-        // Inicializar Firebase (será ativado quando você adicionar as credenciais)
-        let db = null;
-        if (firebaseConfig.apiKey !== "SUA_API_KEY") {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-        }
+        const clientView = document.getElementById('client-view');
+        const hostView = document.getElementById('host-view');
+        const mainTitle = document.getElementById('main-title');
+        const mainSubtitle = document.getElementById('main-subtitle');
+        const mainPanel = document.getElementById('main-panel');
+        
+        let unsubscribeReservationsListener = null;
 
-        // Sistema de armazenamento local para demonstração
-        class LocalStorage {
-            constructor() {
-                this.reservations = this.loadReservations();
-            }
-
-            loadReservations() {
-                const stored = localStorage.getItem('reservations');
-                return stored ? JSON.parse(stored) : [];
-            }
-
-            saveReservations() {
-                localStorage.setItem('reservations', JSON.stringify(this.reservations));
-            }
-
-            addReservation(data) {
-                const reservation = {
-                    ...data,
-                    id: Date.now().toString(),
-                    createdAt: new Date().toISOString()
-                };
-                this.reservations.push(reservation);
-                this.saveReservations();
-                return Promise.resolve(reservation);
-            }
-
-            getReservations(filters = {}) {
-                let filtered = [...this.reservations];
-                
-                if (filters.date) {
-                    filtered = filtered.filter(r => r.date === filters.date);
-                }
-                if (filters.time) {
-                    filtered = filtered.filter(r => r.time === filters.time);
-                }
-                if (filters.status) {
-                    filtered = filtered.filter(r => r.status === filters.status);
-                }
-                
-                // Ordenar por data e hora
-                filtered.sort((a, b) => {
-                    const dateCompare = a.date.localeCompare(b.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return a.time.localeCompare(b.time);
-                });
-                
-                return Promise.resolve(filtered);
-            }
-
-            updateReservation(id, updates) {
-                const index = this.reservations.findIndex(r => r.id === id);
-                if (index !== -1) {
-                    this.reservations[index] = { ...this.reservations[index], ...updates };
-                    this.saveReservations();
-                }
-                return Promise.resolve();
-            }
-
-            onSnapshot(callback) {
-                // Simular real-time updates
-                setInterval(() => {
-                    this.getReservations().then(callback);
-                }, 1000);
-                
-                // Chamar imediatamente
-                this.getReservations().then(callback);
-            }
-        }
-
-        // Usar armazenamento local se Firebase não estiver configurado
-        const storage = db ? null : new LocalStorage();
-
-        // Controle de visualização
-        const urlParams = new URLSearchParams(window.location.search);
-        const isHostView = urlParams.get('view') === 'host';
-
-        if (isHostView) {
-            document.getElementById('clientView').style.display = 'none';
-            document.getElementById('hostView').style.display = 'block';
-            initHostView();
-        } else {
-            initClientView();
-        }
-
-        // Interface Cliente
-        function initClientView() {
-            // Definir data mínima como hoje
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').min = today;
-            document.getElementById('date').value = today;
-
-            // Formatar campo de telefone
-            document.getElementById('phone').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 0) {
-                    if (value.length <= 11) {
-                        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    }
-                    e.target.value = value;
-                }
-            });
-
-            // Submissão do formulário
-            document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const reservation = {
-                    name: document.getElementById('name').value,
-                    phone: document.getElementById('phone').value,
-                    date: document.getElementById('date').value,
-                    time: document.getElementById('time').value,
-                    people: document.getElementById('people').value,
-                    status: 'pending'
-                };
-
-                try {
-                    let reservationId;
-                    
-                    if (db) {
-                        // Salvar no Firebase
-                        const docRef = await db.collection('reservations').add({
-                            ...reservation,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        reservationId = docRef.id;
-                    } else {
-                        // Salvar localmente
-                        const result = await storage.addReservation(reservation);
-                        reservationId = result.id;
-                    }
-
-                    // Mostrar confirmação
-                    showConfirmation(reservation, reservationId);
-                } catch (error) {
-                    console.error('Erro ao fazer reserva:', error);
-                    alert('Erro ao processar reserva. Por favor, tente novamente.');
-                }
-            });
-        }
-
-        function showConfirmation(reservation, reservationId) {
-            const formattedDate = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
+        // --- CONTROLE DE VISUALIZAÇÃO ---
+        function initializeView() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
             
-            document.getElementById('reservationForm').innerHTML = `
-                <div class="confirmation">
-                    <h2>✓ Reserva Confirmada!</h2>
-                    <p><strong>Nome:</strong> ${reservation.name}</p>
-                    <p><strong>Data:</strong> ${formattedDate}</p>
-                    <p><strong>Horário:</strong> ${reservation.time}</p>
-                    <p><strong>Pessoas:</strong> ${reservation.people}</p>
-                    <p><strong>Telefone:</strong> ${reservation.phone}</p>
-                    <p style="color: #999; font-size: 14px; margin-top: 20px;">
-                        Código da reserva: #${reservationId.substring(0, 8).toUpperCase()}
-                    </p>
-                    <div id="qrcode"></div>
-                    <p style="color: #666; font-size: 13px;">
-                        Salve este QR Code para apresentar na entrada
-                    </p>
-                    <button class="btn-new" onclick="location.reload()">
-                        Fazer Nova Reserva
-                    </button>
-                </div>
-            `;
-
-            // Gerar QR Code
-            const qrData = JSON.stringify({
-                id: reservationId,
-                name: reservation.name,
-                date: reservation.date,
-                time: reservation.time,
-                people: reservation.people
-            });
-
-            new QRCode(document.getElementById("qrcode"), {
-                text: qrData,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-        }
-
-        // Interface Host
-        function initHostView() {
-            // Mostrar data/hora atual
-            function updateDateTime() {
-                const now = new Date();
-                const options = { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                };
-                document.getElementById('currentDateTime').textContent = 
-                    now.toLocaleDateString('pt-BR', options);
-            }
-            updateDateTime();
-            setInterval(updateDateTime, 60000);
-
-            // Definir filtro de data para hoje
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('filterDate').value = today;
-
-            // Configurar listeners dos filtros
-            document.getElementById('filterDate').addEventListener('change', loadReservations);
-            document.getElementById('filterTime').addEventListener('change', loadReservations);
-            document.getElementById('filterStatus').addEventListener('change', loadReservations);
-
-            // Carregar reservas
-            if (db) {
-                // Real-time updates do Firebase
-                db.collection('reservations')
-                    .onSnapshot(() => {
-                        loadReservations();
-                    });
+            if (view === 'host') {
+                clientView.classList.add('hidden');
+                hostView.classList.remove('hidden');
+                mainPanel.classList.remove('hidden');
+                mainTitle.textContent = '🏪 Painel do Anfitrião';
+                mainSubtitle.textContent = 'Gerencie as reservas';
+                listenToReservations();
             } else {
-                // Updates locais
-                storage.onSnapshot(() => {
-                    loadReservations();
-                });
+                clientView.classList.remove('hidden');
+                hostView.classList.add('hidden');
             }
-
-            loadReservations();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('reservation-date').min = today;
+            document.getElementById('filter-date').value = today;
         }
 
-        async function loadReservations() {
-            const filters = {
-                date: document.getElementById('filterDate').value,
-                time: document.getElementById('filterTime').value,
-                status: document.getElementById('filterStatus').value
+        // --- INTERFACE DO CLIENTE ---
+        document.getElementById('reservation-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+
+            const reservationData = {
+                name: document.getElementById('client-name').value,
+                phone: document.getElementById('client-phone').value,
+                date: document.getElementById('reservation-date').value,
+                time: document.getElementById('reservation-time').value,
+                people: document.getElementById('party-size').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
             };
 
             try {
-                let reservations = [];
+                const docRef = await addDoc(reservationsCollection, reservationData);
+                console.log("Reserva criada com ID: ", docRef.id);
+                
+                const confirmationDiv = document.getElementById('confirmation-message');
+                confirmationDiv.innerHTML = `<h3>✅ Reserva Recebida!</h3><p>Sua reserva para ${reservationData.name} foi recebida com sucesso. O ID da sua reserva é ${docRef.id}.</p>`;
+                confirmationDiv.classList.add('show');
+                
+                generateQRCode({ ...reservationData, id: docRef.id });
+                e.target.reset();
+                confirmationDiv.scrollIntoView({ behavior: 'smooth' });
 
-                if (db) {
-                    // Buscar do Firebase
-                    let query = db.collection('reservations');
-                    
-                    if (filters.date) {
-                        query = query.where('date', '==', filters.date);
-                    }
-                    if (filters.time) {
-                        query = query.where('time', '==', filters.time);
-                    }
-                    if (filters.status) {
-                        query = query.where('status', '==', filters.status);
-                    }
-
-                    const snapshot = await query.get();
-                    reservations = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-
-                    // Ordenar
-                    reservations.sort((a, b) => {
-                        const timeCompare = a.time.localeCompare(b.time);
-                        if (timeCompare !== 0) return timeCompare;
-                        return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0);
-                    });
-                } else {
-                    // Buscar localmente
-                    reservations = await storage.getReservations(filters);
-                }
-
-                displayReservations(reservations);
             } catch (error) {
-                console.error('Erro ao carregar reservas:', error);
-                document.getElementById('reservationsList').innerHTML = `
-                    <div class="empty-state">
-                        <h3>Erro ao carregar reservas</h3>
-                        <p>Por favor, recarregue a página</p>
-                    </div>
-                `;
+                console.error("Erro ao fazer reserva: ", error);
+                alert("Ocorreu um erro ao fazer sua reserva. Por favor, tente novamente.");
+                const confirmationDiv = document.getElementById('confirmation-message');
+                confirmationDiv.innerHTML = `<h3>❌ Erro!</h3><p>Não foi possível completar sua reserva. Por favor, verifique sua conexão e tente novamente.</p>`;
+                confirmationDiv.style.backgroundColor = '#f8d7da';
+                confirmationDiv.style.borderColor = '#f5c6cb';
+                confirmationDiv.style.color = '#721c24';
+                confirmationDiv.classList.add('show');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Fazer Reserva';
             }
+        });
+
+        function generateQRCode(reservation) {
+            const qrData = JSON.stringify({ id: reservation.id, name: reservation.name, date: reservation.date });
+            const canvas = document.getElementById('qr-canvas');
+            QRCode.toCanvas(canvas, qrData, { width: 200 }, function (error) {
+                if (error) console.error('Erro ao gerar QR Code:', error);
+                else document.getElementById('qr-container').classList.add('show');
+            });
         }
 
-        function displayReservations(reservations) {
-            const container = document.getElementById('reservationsList');
+        document.getElementById('download-qr-btn').addEventListener('click', () => {
+            const canvas = document.getElementById('qr-canvas');
+            const link = document.createElement('a');
+            link.download = 'reserva-qrcode.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+        
+        // --- INTERFACE DO ANFITRIÃO ---
+        function listenToReservations() {
+            const dateFilter = document.getElementById('filter-date').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            let q = reservationsCollection;
+            const conditions = [];
+
+            if (dateFilter) {
+                conditions.push(where("date", "==", dateFilter));
+            }
+            if (statusFilter) {
+                conditions.push(where("status", "==", statusFilter));
+            }
             
-            if (reservations.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>Nenhuma reserva encontrada</h3>
-                        <p>Ajuste os filtros ou aguarde novas reservas</p>
-                    </div>
-                `;
+            if (conditions.length > 0) {
+                 q = query(reservationsCollection, ...conditions);
+            }
+
+            if (unsubscribeReservationsListener) {
+                unsubscribeReservationsListener();
+            }
+
+            unsubscribeReservationsListener = onSnapshot(q, (querySnapshot) => {
+                const reservations = [];
+                querySnapshot.forEach((doc) => {
+                    reservations.push({ id: doc.id, ...doc.data() });
+                });
+                displayReservations(reservations);
+                updateStats(reservations);
+            }, (error) => {
+                console.error("Erro ao carregar reservas:", error);
+                alert("Não foi possível carregar as reservas.");
+            });
+        }
+
+        document.getElementById('filter-date').addEventListener('change', listenToReservations);
+        document.getElementById('filter-status').addEventListener('change', listenToReservations);
+
+        function displayReservations(reservationList) {
+            const container = document.getElementById('reservations-list');
+            if (reservationList.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 40px; color: #666;"><h3>Nenhuma reserva encontrada</h3></div>`;
                 return;
             }
 
-            container.innerHTML = reservations.map(reservation => {
-                const statusClass = `status-${reservation.status}`;
-                const statusText = getStatusText(reservation.status);
-                const formattedDate = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
-                
+            container.innerHTML = reservationList.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).map(res => {
+                const statusText = {
+                    'pending': 'Pendente', 'confirmed': 'Confirmada', 'checked-in': 'Check-in', 'no-show': 'Não Compareceu'
+                }[res.status];
+
                 return `
-                    <div class="reservation-item">
+                    <div class="reservation-card ${res.status}">
+                        <div class="status-badge status-${res.status}">${statusText}</div>
                         <div class="reservation-info">
-                            <div class="reservation-name">
-                                ${reservation.name}
-                                <span class="status-badge ${statusClass}">${statusText}</span>
-                            </div>
-                            <div class="reservation-details">
-                                📅 ${formattedDate} às ${reservation.time}<br>
-                                👥 ${reservation.people} pessoa${reservation.people > 1 ? 's' : ''}<br>
-                                📱 ${reservation.phone}
-                            </div>
+                            <div class="info-item"><div class="info-label">Nome</div><div class="info-value">${res.name}</div></div>
+                            <div class="info-item"><div class="info-label">Telefone</div><div class="info-value">${res.phone}</div></div>
+                            <div class="info-item"><div class="info-label">Data</div><div class="info-value">${formatDate(res.date)}</div></div>
+                            <div class="info-item"><div class="info-label">Horário</div><div class="info-value">${res.time}</div></div>
+                            <div class="info-item"><div class="info-label">Pessoas</div><div class="info-value">${res.people}</div></div>
+                            <div class="info-item"><div class="info-label">ID</div><div class="info-value" style="font-size:12px; word-break:break-all;">${res.id}</div></div>
                         </div>
                         <div class="reservation-actions">
-                            <button class="btn-action btn-confirm" 
-                                    onclick="updateStatus('${reservation.id}', 'confirmed')"
-                                    ${reservation.status !== 'pending' ? 'disabled' : ''}>
-                                Confirmar
-                            </button>
-                            <button class="btn-action btn-checkin" 
-                                    onclick="updateStatus('${reservation.id}', 'present')"
-                                    ${reservation.status !== 'confirmed' ? 'disabled' : ''}>
-                                Check-in
-                            </button>
-                            <button class="btn-action btn-noshow" 
-                                    onclick="updateStatus('${reservation.id}', 'noshow')"
-                                    ${reservation.status === 'present' || reservation.status === 'noshow' ? 'disabled' : ''}>
-                                Não Compareceu
-                            </button>
+                            ${res.status === 'pending' ? `<button class="btn-small btn-confirm" onclick="window.updateReservationStatus('${res.id}', 'confirmed')">✅ Confirmar</button>` : ''}
+                            ${res.status === 'confirmed' ? `<button class="btn-small btn-checkin" onclick="window.updateReservationStatus('${res.id}', 'checked-in')">📋 Check-in</button>` : ''}
+                            ${['pending', 'confirmed'].includes(res.status) ? `<button class="btn-small btn-noshow" onclick="window.updateReservationStatus('${res.id}', 'no-show')">❌ N-Show</button>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function getStatusText(status) {
-            const statusMap = {
-                'pending': 'Pendente',
-                'confirmed': 'Confirmada',
-                'present': 'Presente',
-                'noshow': 'Não Compareceu'
-            };
-            return statusMap[status] || status;
+        window.updateReservationStatus = async (reservationId, newStatus) => {
+            const reservationRef = doc(db, 'reservas', reservationId);
+            try {
+                await updateDoc(reservationRef, { status: newStatus });
+                console.log(`Reserva ${reservationId} atualizada para ${newStatus}`);
+            } catch (error) {
+                console.error("Erro ao atualizar status:", error);
+                alert("Não foi possível atualizar o status da reserva.");
+            }
+        };
+
+        function updateStats(reservations) {
+            document.getElementById('total-reservations').textContent = reservations.length;
+            document.getElementById('confirmed-reservations').textContent = reservations.filter(r => r.status === 'confirmed').length;
+            document.getElementById('checkedin-reservations').textContent = reservations.filter(r => r.status === 'checked-in').length;
+            document.getElementById('noshow-reservations').textContent = reservations.filter(r => r.status === 'no-show').length;
         }
 
-        async function updateStatus(reservationId, newStatus) {
-            try {
-                if (db) {
-                    // Atualizar no Firebase
-                    await db.collection('reservations').doc(reservationId).update({
-                        status: newStatus,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } else {
-                    // Atualizar localmente
-                    await storage.updateReservation(reservationId, { status: newStatus });
-                }
-                
-                // Recarregar lista
-                loadReservations();
-            } catch (error) {
-                console.error('Erro ao atualizar status:', error);
-                alert('Erro ao atualizar status. Por favor, tente novamente.');
-            }
+        // --- FUNÇÕES UTILITÁRIAS ---
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         }
+
+        document.getElementById('client-phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.replace(/^(\d\d)(\d{5})(\d{4}).*/, "($1) $2-$3");
+            } else if (value.length > 5) {
+                value = value.replace(/^(\d\d)(\d{4})(\d{0,4}).*/, "($1) $2-$3");
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d\d)(\d{0,5}).*/, "($1) $2");
+            } else {
+                value = value.replace(/^(\d*)/, "($1");
+            }
+            e.target.value = value;
+        });
+
+        // Inicializa a aplicação
+        window.addEventListener('load', initializeView);
+
     </script>
 </body>
-
 </html>

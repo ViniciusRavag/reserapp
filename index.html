@@ -906,17 +906,17 @@
                                target="_blank"
                                onclick="updateStatus('${reservation.id}', 'confirmed')"
                                ${reservation.status !== 'pending' ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>
-                                💬 Confirmar
+                                Confirmar
                             </a>
                             <button class="btn-action btn-checkin" 
                                     onclick="updateStatus('${reservation.id}', 'present')"
                                     ${reservation.status !== 'confirmed' ? 'disabled' : ''}>
-                                ✅ Check-in
+                                Check-in
                             </button>
                             <button class="btn-action btn-noshow" 
                                     onclick="updateStatus('${reservation.id}', 'noshow')"
                                     ${reservation.status === 'present' || reservation.status === 'noshow' ? 'disabled' : ''}>
-                                ❌ Não Compareceu
+                                Não Compareceu
                             </button>
                         </div>
                     </div>
@@ -957,5 +957,6 @@
     </script>
 </body>
 </html>
+
 
 

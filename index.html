@@ -1,840 +1,959 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="antialiased">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reserva Exclusiva | Restaurante</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas - Restaurante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <!-- Tailwind Config for Custom Colors -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                    },
-                    colors: {
-                        brand: {
-                            black: '#0f0f0f',
-                            dark: '#18181b',
-                            card: '#27272a',
-                            orange: '#ff6b35',
-                            gold: '#f59e0b',
-                            success: '#10b981',
-                            error: '#ef4444',
-                            text: '#e4e4e7',
-                            muted: '#a1a1aa'
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #9F0402 0%, #9F0402 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-    <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #18181b; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3f3f46; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #52525b; 
-        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-        /* Glassmorphism utilities */
-        .glass {
-            background: rgba(39, 39, 42, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        /* Interface Cliente */
+        .client-view {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 40px);
+        }
 
-        /* Hide number input spinners */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-        
-        /* Mobile safe area */
-        .safe-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-    </style>
+        .reservation-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input:disabled, select:disabled {
+            background-color: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .datetime-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Confirmação */
+        .confirmation {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease;
+        }
+
+        .confirmation h2 {
+            color: #FF9800;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .confirmation p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .btn-new {
+            background: #4CAF50;
+            margin-top: 20px;
+        }
+
+        /* Interface Host */
+        .host-view {
+            display: none;
+        }
+
+        .host-header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .host-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .filter-group input, .filter-group select {
+            width: auto;
+            padding: 8px 12px;
+        }
+
+        .reservations-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .reservation-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .reservation-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .reservation-info {
+            flex: 1;
+        }
+
+        .reservation-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .reservation-details {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .reservation-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-confirm {
+            background: #25D366;
+            color: white;
+        }
+
+        .btn-checkin {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-noshow {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-pending {
+            background: #FFF3E0;
+            color: #F57C00;
+        }
+
+        .status-confirmed {
+            background: #E8F5E9;
+            color: #388E3C;
+        }
+
+        .status-present {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .status-noshow {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state h3 {
+            color: #999;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #bbb;
+        }
+
+        .error-message {
+            background: #FFEBEE;
+            color: #C62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .datetime-group {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .reservation-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .reservation-actions {
+                margin-top: 15px;
+                width: 100%;
+            }
+
+            .btn-action {
+                flex: 1;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: "."; }
+            40% { content: ".."; }
+            60%, 100% { content: "..."; }
+        }
+    </style>
 </head>
-<body class="bg-brand-black text-brand-text min-h-screen selection:bg-brand-orange selection:text-white overflow-x-hidden">
-
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-black transition-opacity duration-500">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-orange mx-auto mb-4"></div>
-            <p class="text-brand-muted text-sm tracking-widest uppercase">Carregando Sistema</p>
-        </div>
-    </div>
-
-    <!-- MAIN APP CONTAINER -->
-    <div id="app" class="relative hidden">
-        
-        <!-- ================= CLIENT VIEW (BOOKING) ================= -->
-        <div id="clientView" class="min-h-screen flex flex-col hidden">
-            <!-- Header Image/Hero -->
-            <div class="relative h-48 md:h-64 w-full overflow-hidden">
-                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-brand-black z-10"></div>
-                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center opacity-60"></div>
-                
-                <div class="absolute bottom-0 left-0 w-full p-6 z-20">
-                    <h1 class="font-serif text-3xl md:text-4xl text-white font-bold mb-1">Restaurante Exclusivo</h1>
-                    <p class="text-brand-orange text-sm font-medium tracking-wide uppercase flex items-center gap-2">
-                        <i data-lucide="utensils" class="w-4 h-4"></i> Alta Gastronomia
-                    </p>
-                </div>
-            </div>
-
-            <!-- Booking Content -->
-            <main class="flex-1 px-4 py-6 md:px-6 max-w-2xl mx-auto w-full relative -mt-6 z-30">
-                <div class="glass rounded-2xl p-6 shadow-2xl shadow-black/50 animate-slide-up" id="bookingCard">
-                    
-                    <!-- Progress Steps (Optional visual cue) -->
-                    <div class="flex items-center justify-between mb-8 px-2">
-                        <div class="flex items-center gap-2 text-brand-orange">
-                            <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
-                            <span class="text-xs font-bold uppercase">Reserva</span>
-                        </div>
-                        <div class="h-[1px] bg-white/10 flex-1 mx-4"></div>
-                        <div class="text-brand-muted text-xs font-medium uppercase">Confirmação</div>
-                    </div>
-
-                    <form id="bookingForm" class="space-y-6">
-                        
-                        <!-- Personal Info -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Seu Nome</label>
-                                <div class="relative">
-                                    <i data-lucide="user" class="absolute left-4 top-3.5 w-5 h-5 text-brand-muted"></i>
-                                    <input type="text" id="name" required placeholder="João Silva" 
-                                        class="w-full bg-brand-dark border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder:text-white/20">
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">WhatsApp</label>
-                                <div class="relative">
-                                    <i data-lucide="phone" class="absolute left-4 top-3.5 w-5 h-5 text-brand-muted"></i>
-                                    <input type="tel" id="phone" required placeholder="(11) 99999-9999" 
-                                        class="w-full bg-brand-dark border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder:text-white/20">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Date Selection -->
-                        <div class="space-y-2">
-                            <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Data da Reserva</label>
-                            <div class="relative">
-                                <i data-lucide="calendar" class="absolute left-4 top-3.5 w-5 h-5 text-brand-muted"></i>
-                                <input type="date" id="date" required 
-                                    class="w-full bg-brand-dark border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all [color-scheme:dark]">
-                            </div>
-                        </div>
-
-                        <!-- People Count Stepper -->
-                        <div class="space-y-2">
-                            <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Número de Pessoas</label>
-                            <div class="flex items-center bg-brand-dark border border-white/10 rounded-xl p-1">
-                                <button type="button" id="btnDecreasePeople" class="w-12 h-10 flex items-center justify-center text-brand-orange hover:bg-white/5 rounded-lg transition-colors">
-                                    <i data-lucide="minus" class="w-5 h-5"></i>
-                                </button>
-                                <div class="flex-1 text-center font-semibold text-lg border-l border-r border-white/5 h-6 flex items-center justify-center">
-                                    <span id="peopleDisplay">2 pessoas</span>
-                                    <input type="hidden" id="people" value="2">
-                                </div>
-                                <button type="button" id="btnIncreasePeople" class="w-12 h-10 flex items-center justify-center text-brand-orange hover:bg-white/5 rounded-lg transition-colors">
-                                    <i data-lucide="plus" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Time Slots Grid -->
-                        <div class="space-y-2">
-                            <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Horários Disponíveis</label>
-                            <div id="timeSlotsContainer" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                <!-- Slots injected via JS -->
-                                <div class="col-span-full py-8 text-center text-brand-muted text-sm bg-brand-dark/50 rounded-xl border border-white/5 border-dashed">
-                                    Selecione uma data para ver horários
-                                </div>
-                            </div>
-                            <input type="hidden" id="time" required>
-                            <p id="timeError" class="text-brand-error text-xs hidden mt-1">Selecione um horário disponível.</p>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-brand-orange to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed">
-                            <span>Confirmar Reserva</span>
-                            <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-
-                    </form>
-                </div>
-
-                <!-- Success State (Hidden by default) -->
-                <div id="successCard" class="glass rounded-2xl p-8 shadow-2xl text-center hidden animate-slide-up">
-                    <div class="w-20 h-20 bg-brand-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="check" class="w-10 h-10 text-brand-success"></i>
-                    </div>
-                    <h2 class="font-serif text-2xl font-bold text-white mb-2">Reserva Recebida!</h2>
-                    <p class="text-brand-muted mb-6">Sua solicitação está pendente de confirmação. Enviaremos uma mensagem no seu WhatsApp em breve.</p>
-                    
-                    <div class="bg-brand-dark/50 rounded-xl p-4 text-left space-y-3 border border-white/5 mb-8">
-                        <div class="flex justify-between">
-                            <span class="text-brand-muted text-sm">Nome</span>
-                            <span class="font-medium text-white" id="confirmName">João Silva</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-brand-muted text-sm">Data & Hora</span>
-                            <span class="font-medium text-white"><span id="confirmDate">01/01</span> às <span id="confirmTime">20:00</span></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-brand-muted text-sm">Pessoas</span>
-                            <span class="font-medium text-white" id="confirmPeople">2</span>
-                        </div>
-                        <div class="pt-3 border-t border-white/10 flex justify-between items-center">
-                            <span class="text-brand-muted text-xs">Cód. Reserva</span>
-                            <span class="font-mono text-brand-orange text-xs" id="confirmId">#A1B2</span>
-                        </div>
-                    </div>
-
-                    <button onclick="location.reload()" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 rounded-xl transition-colors">
-                        Fazer Nova Reserva
-                    </button>
-                </div>
-                
-                <footer class="mt-8 text-center pb-6">
-                    <p class="text-brand-muted text-xs">© 2024 Restaurante Exclusivo</p>
-                    <a href="?view=host" class="text-brand-dark text-[10px] mt-2 inline-block hover:text-brand-muted transition-colors">Acesso Administrativo</a>
-                </footer>
-            </main>
-        </div>
-
-
-        <!-- ================= HOST VIEW (DASHBOARD) ================= -->
-        <div id="hostView" class="min-h-screen bg-brand-black flex hidden">
-            
-            <!-- Sidebar -->
-            <aside class="hidden md:flex flex-col w-64 bg-brand-card border-r border-white/5 fixed h-full z-20">
-                <div class="p-6">
-                    <h1 class="font-serif text-2xl text-white font-bold">Admin Panel</h1>
-                    <p class="text-brand-muted text-xs tracking-wider uppercase mt-1">Gestão de Reservas</p>
-                </div>
-                
-                <nav class="flex-1 px-4 space-y-2 mt-4">
-                    <a href="#" class="flex items-center gap-3 px-4 py-3 bg-brand-orange/10 text-brand-orange rounded-xl border border-brand-orange/20">
-                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                        <span class="font-medium">Dashboard</span>
-                    </a>
-                    <a href="?view=client" class="flex items-center gap-3 px-4 py-3 text-brand-muted hover:text-white hover:bg-white/5 rounded-xl transition-colors">
-                        <i data-lucide="external-link" class="w-5 h-5"></i>
-                        <span class="font-medium">Ver Site</span>
-                    </a>
-                </nav>
-
-                <div class="p-4 border-t border-white/5">
-                    <div id="hostClock" class="text-center font-mono text-brand-muted text-sm">--:--</div>
-                    <div id="hostDate" class="text-center text-xs text-brand-muted/60 mt-1">...</div>
-                </div>
-            </aside>
-
-            <!-- Main Content -->
-            <main class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
-                
-                <!-- Mobile Header -->
-                <div class="md:hidden flex items-center justify-between mb-6">
-                    <h1 class="font-serif text-xl font-bold">Gestão</h1>
-                    <a href="?view=client" class="p-2 bg-brand-card rounded-lg border border-white/10">
-                        <i data-lucide="external-link" class="w-5 h-5"></i>
-                    </a>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-brand-card p-5 rounded-xl border border-white/5">
-                        <p class="text-brand-muted text-xs uppercase font-bold mb-2">Hoje</p>
-                        <h3 class="text-2xl md:text-3xl font-bold text-white" id="statTotal">0</h3>
-                        <p class="text-xs text-brand-muted mt-1">Total Reservas</p>
-                    </div>
-                    <div class="bg-brand-card p-5 rounded-xl border border-brand-success/20 bg-gradient-to-br from-brand-card to-brand-success/5">
-                        <p class="text-brand-success text-xs uppercase font-bold mb-2">Confirmadas</p>
-                        <h3 class="text-2xl md:text-3xl font-bold text-brand-success" id="statConfirmed">0</h3>
-                    </div>
-                    <div class="bg-brand-card p-5 rounded-xl border border-brand-gold/20 bg-gradient-to-br from-brand-card to-brand-gold/5">
-                        <p class="text-brand-gold text-xs uppercase font-bold mb-2">Pendentes</p>
-                        <h3 class="text-2xl md:text-3xl font-bold text-brand-gold" id="statPending">0</h3>
-                    </div>
-                    <div class="bg-brand-card p-5 rounded-xl border border-brand-orange/20 bg-gradient-to-br from-brand-card to-brand-orange/5">
-                        <p class="text-brand-orange text-xs uppercase font-bold mb-2">Pax Total</p>
-                        <h3 class="text-2xl md:text-3xl font-bold text-brand-orange" id="statPax">0</h3>
-                    </div>
-                </div>
-
-                <!-- Filters Bar -->
-                <div class="bg-brand-card rounded-xl p-4 mb-6 border border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between sticky top-0 z-10 shadow-lg shadow-black/20">
-                    <div class="flex items-center gap-4 w-full md:w-auto">
-                        <div class="relative w-full md:w-auto">
-                            <i data-lucide="calendar" class="absolute left-3 top-2.5 w-4 h-4 text-brand-muted"></i>
-                            <input type="date" id="filterDate" class="bg-brand-dark border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-brand-orange w-full md:w-auto [color-scheme:dark]">
-                        </div>
-                        <select id="filterStatus" class="bg-brand-dark border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-brand-orange">
-                            <option value="">Status: Todos</option>
-                            <option value="pending">Pendente</option>
-                            <option value="confirmed">Confirmada</option>
-                            <option value="present">Presente</option>
-                            <option value="noshow">Não Compareceu</option>
-                        </select>
-                    </div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                         <select id="filterTime" class="bg-brand-dark border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-brand-orange w-full md:w-auto">
-                            <option value="">Horário: Todos</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Reservations Grid -->
-                <div id="reservationsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-10">
-                    <!-- Cards will be injected here -->
-                    <div class="col-span-full py-12 text-center text-brand-muted">
-                        <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                        <p>Buscando reservas...</p>
-                    </div>
-                </div>
-
-            </main>
-        </div>
-
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot, doc, updateDoc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
-        // --- GLOBAL CONFIGURATION ---
-        const MAX_RESERVATIONS_PER_SLOT = 5;
-        const AVAILABLE_TIMES = [
-            "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00",
-            "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"
-        ];
-
-        // --- FIREBASE SETUP ---
-        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
-        const appId = window.__app_id || 'default-app';
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // State
-        let currentUser = null;
-        let isHostMode = false;
-
-        // --- DOM ELEMENTS ---
-        const els = {
-            app: document.getElementById('app'),
-            loadingOverlay: document.getElementById('loadingOverlay'),
-            clientView: document.getElementById('clientView'),
-            hostView: document.getElementById('hostView'),
-            // Client Forms
-            bookingForm: document.getElementById('bookingForm'),
-            nameInput: document.getElementById('name'),
-            phoneInput: document.getElementById('phone'),
-            dateInput: document.getElementById('date'),
-            timeInput: document.getElementById('time'),
-            peopleInput: document.getElementById('people'),
-            peopleDisplay: document.getElementById('peopleDisplay'),
-            timeSlotsContainer: document.getElementById('timeSlotsContainer'),
-            btnIncrease: document.getElementById('btnIncreasePeople'),
-            btnDecrease: document.getElementById('btnDecreasePeople'),
-            bookingCard: document.getElementById('bookingCard'),
-            successCard: document.getElementById('successCard'),
-            submitBtn: document.getElementById('submitBtn'),
-            // Host Elements
-            filterDate: document.getElementById('filterDate'),
-            filterStatus: document.getElementById('filterStatus'),
-            filterTime: document.getElementById('filterTime'),
-            reservationsGrid: document.getElementById('reservationsGrid'),
-            stats: {
-                total: document.getElementById('statTotal'),
-                confirmed: document.getElementById('statConfirmed'),
-                pending: document.getElementById('statPending'),
-                pax: document.getElementById('statPax')
-            }
-        };
-
-        // --- INITIALIZATION ---
-        async function init() {
-            // Check view mode
-            const urlParams = new URLSearchParams(window.location.search);
-            isHostMode = urlParams.get('view') === 'host';
-
-            // Init Lucide Icons
-            lucide.createIcons();
-
-            // Setup Auth with Correct Token Handling
-            const initAuth = async () => {
-                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
-                    try {
-                        await signInWithCustomToken(auth, window.__initial_auth_token);
-                    } catch (e) {
-                        console.error("Custom token auth failed, falling back to anonymous", e);
-                        await signInAnonymously(auth);
-                    }
-                } else {
-                    await signInAnonymously(auth);
-                }
-            };
-
-            initAuth();
-
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    els.loadingOverlay.classList.add('opacity-0');
-                    setTimeout(() => els.loadingOverlay.remove(), 500);
-                    els.app.classList.remove('hidden');
-
-                    if (isHostMode) {
-                        initHostView();
-                    } else {
-                        initClientView();
-                    }
-                }
-            });
-        }
-
-        // --- CLIENT VIEW LOGIC ---
-        function initClientView() {
-            els.hostView.classList.add('hidden');
-            els.clientView.classList.remove('hidden');
-
-            // Set Date Min to Today
-            const today = new Date().toISOString().split('T')[0];
-            els.dateInput.min = today;
-            els.dateInput.value = today;
-
-            // People Stepper Logic
-            els.btnIncrease.onclick = () => updatePeople(1);
-            els.btnDecrease.onclick = () => updatePeople(-1);
-
-            // Phone Formatting
-            els.phoneInput.addEventListener('input', (e) => {
-                let v = e.target.value.replace(/\D/g, '');
-                if (v.length > 11) v = v.substring(0, 11);
-                if (v.length > 2) v = `(${v.substring(0,2)}) ${v.substring(2)}`;
-                if (v.length > 9) v = `${v.substring(0,9)}-${v.substring(9)}`;
-                e.target.value = v;
-            });
-
-            // Date Change Listener
-            els.dateInput.addEventListener('change', (e) => loadTimeSlots(e.target.value));
-
-            // Load initial slots
-            loadTimeSlots(today);
-
-            // Form Submit
-            els.bookingForm.addEventListener('submit', handleBookingSubmit);
-        }
-
-        function updatePeople(change) {
-            let current = parseInt(els.peopleInput.value);
-            let next = current + change;
-            if (next < 1) next = 1;
-            if (next > 20) next = 20;
-            
-            els.peopleInput.value = next;
-            els.peopleDisplay.textContent = `${next} pessoa${next > 1 ? 's' : ''}`;
-        }
-
-        async function loadTimeSlots(date) {
-            els.timeSlotsContainer.innerHTML = `
-                <div class="col-span-full py-4 text-center text-brand-muted">
-                    <div class="animate-spin h-5 w-5 border-2 border-brand-orange rounded-full border-t-transparent mx-auto mb-2"></div>
-                    Verificando disponibilidade...
-                </div>
-            `;
-            els.timeInput.value = ''; // Reset selection
-
-            const slots = [];
-            
-            // Simplified query: Only filter by date to allow simple index usage
-            const q = query(
-                collection(db, 'artifacts', appId, 'public', 'data', 'reservations'),
-                where('date', '==', date)
-            );
-
-            try {
-                const querySnapshot = await getDocs(q);
-                const counts = {};
-
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Filter in memory for accurate counts
-                    if (['confirmed', 'pending'].includes(data.status)) {
-                        counts[data.time] = (counts[data.time] || 0) + 1;
-                    }
-                });
-
-                els.timeSlotsContainer.innerHTML = '';
-                
-                let hasAvailable = false;
-
-                AVAILABLE_TIMES.forEach(time => {
-                    const count = counts[time] || 0;
-                    const isFull = count >= MAX_RESERVATIONS_PER_SLOT;
-
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = `
-                        py-2 px-1 rounded-lg text-sm font-medium border transition-all duration-200
-                        ${isFull 
-                            ? 'bg-brand-dark/30 border-white/5 text-white/20 cursor-not-allowed decoration-slice line-through' 
-                            : 'bg-brand-dark border-white/10 text-white hover:border-brand-orange hover:text-brand-orange focus:ring-2 focus:ring-brand-orange/50'}
-                    `;
-                    btn.textContent = time;
-                    btn.disabled = isFull;
-
-                    if (!isFull) {
-                        hasAvailable = true;
-                        btn.onclick = () => selectTimeSlot(btn, time);
-                    }
-
-                    els.timeSlotsContainer.appendChild(btn);
-                });
-
-                if (!hasAvailable) {
-                    els.timeSlotsContainer.innerHTML = `
-                        <div class="col-span-full py-4 text-center text-brand-error bg-brand-error/10 rounded-lg border border-brand-error/20">
-                            Sem horários disponíveis para esta data.
-                        </div>
-                    `;
-                }
-
-            } catch (error) {
-                console.error("Error loading slots:", error);
-                els.timeSlotsContainer.innerHTML = '<div class="col-span-full text-brand-error text-center text-sm">Erro ao carregar horários.</div>';
-            }
-        }
-
-        function selectTimeSlot(btn, time) {
-            // Remove active class from all
-            const allBtns = els.timeSlotsContainer.querySelectorAll('button');
-            allBtns.forEach(b => {
-                if(!b.disabled) {
-                    b.classList.remove('bg-brand-orange', 'text-white', 'border-transparent');
-                    b.classList.add('bg-brand-dark', 'text-white', 'border-white/10');
-                }
-            });
-
-            // Add active to current
-            btn.classList.remove('bg-brand-dark', 'border-white/10');
-            btn.classList.add('bg-brand-orange', 'text-white', 'border-transparent');
-
-            els.timeInput.value = time;
-            document.getElementById('timeError').classList.add('hidden');
-        }
-
-        async function handleBookingSubmit(e) {
-            e.preventDefault();
-            
-            if (!els.timeInput.value) {
-                document.getElementById('timeError').classList.remove('hidden');
-                return;
-            }
-
-            els.submitBtn.disabled = true;
-            els.submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i> Processando...';
-            lucide.createIcons();
-
-            const reservation = {
-                name: els.nameInput.value,
-                phone: els.phoneInput.value,
-                date: els.dateInput.value,
-                time: els.timeInput.value,
-                people: els.peopleInput.value,
-                status: 'pending',
-                createdAt: serverTimestamp()
-            };
-
-            try {
-                // Double check availability (Race condition protection)
-                // Simplified query to avoid composite index error
-                const q = query(
-                    collection(db, 'artifacts', appId, 'public', 'data', 'reservations'),
-                    where('date', '==', reservation.date)
-                );
-                const snapshot = await getDocs(q);
-                
-                // Manual filtering in memory
-                const existing = snapshot.docs.filter(d => {
-                    const data = d.data();
-                    return data.time === reservation.time && ['confirmed', 'pending'].includes(data.status);
-                });
-                
-                if (existing.length >= MAX_RESERVATIONS_PER_SLOT) {
-                    alert('Desculpe! Este horário acabou de ser preenchido. Por favor, escolha outro.');
-                    loadTimeSlots(reservation.date);
-                    els.submitBtn.disabled = false;
-                    els.submitBtn.innerHTML = 'Confirmar Reserva <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>';
-                    lucide.createIcons();
-                    return;
-                }
-
-                // Add Document
-                const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'reservations'), reservation);
-                
-                // Show Success
-                els.bookingCard.classList.add('hidden');
-                els.successCard.classList.remove('hidden');
-                
-                // Fill details
-                document.getElementById('confirmName').textContent = reservation.name;
-                document.getElementById('confirmDate').textContent = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
-                document.getElementById('confirmTime').textContent = reservation.time;
-                document.getElementById('confirmPeople').textContent = reservation.people;
-                document.getElementById('confirmId').textContent = '#' + docRef.id.substring(0, 6).toUpperCase();
-
-            } catch (error) {
-                console.error("Booking Error:", error);
-                alert("Ocorreu um erro ao salvar sua reserva. Tente novamente.");
-                els.submitBtn.disabled = false;
-                els.submitBtn.innerHTML = 'Confirmar Reserva';
-            }
-        }
-
-        // --- HOST VIEW LOGIC ---
-        function initHostView() {
-            els.clientView.classList.add('hidden');
-            els.hostView.classList.remove('hidden');
-            
-            // Populate Time Filter
-            els.filterTime.innerHTML = '<option value="">Horário: Todos</option>' + 
-                AVAILABLE_TIMES.map(t => `<option value="${t}">${t}</option>`).join('');
-
-            // Set default date filter to today
-            const today = new Date().toISOString().split('T')[0];
-            els.filterDate.value = today;
-
-            // Clock
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('hostClock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
-                document.getElementById('hostDate').textContent = now.toLocaleDateString('pt-BR', {weekday: 'long', day:'numeric', month:'short'});
-            }, 1000);
-
-            // Listeners
-            els.filterDate.addEventListener('change', subscribeToReservations);
-            els.filterStatus.addEventListener('change', renderReservationsList);
-            els.filterTime.addEventListener('change', renderReservationsList);
-
-            // Start Realtime Listener
-            subscribeToReservations();
-        }
-
-        let unsubscribeReservations = null;
-        let allReservations = []; // Store locally for client-side filtering (optimization for small datasets)
-
-        function subscribeToReservations() {
-            if (unsubscribeReservations) unsubscribeReservations();
-
-            const date = els.filterDate.value;
-            if (!date) return;
-
-            els.reservationsGrid.innerHTML = `
-                <div class="col-span-full py-12 text-center text-brand-muted">
-                    <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
-                    <p>Atualizando...</p>
-                </div>
-            `;
-            lucide.createIcons();
-
-            // Query by date only, filter others in memory to avoid needing complex composite indexes
-            const q = query(
-                collection(db, 'artifacts', appId, 'public', 'data', 'reservations'),
-                where('date', '==', date)
-            );
-
-            unsubscribeReservations = onSnapshot(q, (snapshot) => {
-                allReservations = [];
-                snapshot.forEach(doc => {
-                    allReservations.push({ id: doc.id, ...doc.data() });
-                });
-                
-                // Sort by Time
-                allReservations.sort((a, b) => a.time.localeCompare(b.time));
-                
-                renderReservationsList();
-            }, (error) => {
-                console.error("Snapshot Error:", error);
-                els.reservationsGrid.innerHTML = '<div class="text-brand-error">Erro ao carregar dados. Verifique permissões.</div>';
-            });
-        }
-
-        function renderReservationsList() {
-            const statusFilter = els.filterStatus.value;
-            const timeFilter = els.filterTime.value;
-
-            const filtered = allReservations.filter(r => {
-                if (statusFilter && r.status !== statusFilter) return false;
-                if (timeFilter && r.time !== timeFilter) return false;
-                return true;
-            });
-
-            // Update Stats
-            els.stats.total.textContent = filtered.length;
-            els.stats.confirmed.textContent = filtered.filter(r => r.status === 'confirmed').length;
-            els.stats.pending.textContent = filtered.filter(r => r.status === 'pending').length;
-            els.stats.pax.textContent = filtered.reduce((acc, curr) => acc + parseInt(curr.people || 0), 0);
-
-            if (filtered.length === 0) {
-                els.reservationsGrid.innerHTML = `
-                    <div class="col-span-full py-20 text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-card border border-white/5 mb-4">
-                            <i data-lucide="calendar-x" class="w-8 h-8 text-brand-muted"></i>
-                        </div>
-                        <h3 class="text-white font-serif text-lg">Nenhuma reserva encontrada</h3>
-                        <p class="text-brand-muted text-sm mt-1">Ajuste os filtros ou aguarde novas solicitações.</p>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
-
-            els.reservationsGrid.innerHTML = filtered.map(r => createReservationCard(r)).join('');
-            lucide.createIcons();
-        }
-
-        function createReservationCard(r) {
-            const statusConfig = {
-                pending: { color: 'text-brand-gold', bg: 'bg-brand-gold/10', label: 'Pendente', icon: 'clock' },
-                confirmed: { color: 'text-brand-success', bg: 'bg-brand-success/10', label: 'Confirmada', icon: 'check-circle' },
-                present: { color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Presente', icon: 'user-check' },
-                noshow: { color: 'text-brand-error', bg: 'bg-brand-error/10', label: 'No-Show', icon: 'x-circle' }
-            };
-            
-            const s = statusConfig[r.status] || statusConfig.pending;
-
-            // WhatsApp Message Gen
-            const cleanPhone = r.phone.replace(/\D/g, '');
-            const waNum = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
-            const formattedDate = new Date(r.date + 'T00:00:00').toLocaleDateString('pt-BR');
-            const waMsg = encodeURIComponent(
-                `Olá ${r.name}! 👋\n\n` +
-                `Sua reserva foi confirmada! ✅\n\n` +
-                `📋 *Detalhes da Reserva:*\n` +
-                `📅 Data: ${formattedDate}\n` +
-                `⏰ Horário: ${r.time}\n` +
-                `👥 Pessoas: ${r.people}\n\n` +
-                `Por favor, chegue com 10 minutos de antecedência.\n\n` +
-                `Aguardamos vocês! 🍽️`
-            );
-
-            return `
-                <div class="glass rounded-xl p-5 relative group hover:border-brand-orange/30 transition-all duration-300">
-                    <!-- Header -->
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="font-bold text-white text-lg leading-tight mb-1">${r.name}</h3>
-                            <div class="flex items-center gap-2 text-brand-muted text-sm">
-                                <i data-lucide="phone" class="w-3 h-3"></i> ${r.phone}
-                            </div>
-                        </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${s.bg} ${s.color}">
-                            <i data-lucide="${s.icon}" class="w-3 h-3"></i> ${s.label}
-                        </span>
-                    </div>
-                    
-                    <!-- Details -->
-                    <div class="grid grid-cols-2 gap-2 mb-4">
-                        <div class="bg-brand-dark rounded-lg p-2 border border-white/5">
-                            <div class="text-[10px] text-brand-muted uppercase tracking-wider">Horário</div>
-                            <div class="text-white font-mono font-bold">${r.time}</div>
-                        </div>
-                        <div class="bg-brand-dark rounded-lg p-2 border border-white/5">
-                            <div class="text-[10px] text-brand-muted uppercase tracking-wider">Pessoas</div>
-                            <div class="text-white font-mono font-bold">${r.people}</div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="grid grid-cols-3 gap-2 mt-2">
-                        <a href="https://wa.me/${waNum}?text=${waMsg}" target="_blank" 
-                           onclick="window.updateStatus('${r.id}', 'confirmed')"
-                           class="flex items-center justify-center p-2 rounded-lg bg-brand-success/10 text-brand-success hover:bg-brand-success hover:text-white transition-colors border border-brand-success/20 ${r.status !== 'pending' ? 'opacity-50 pointer-events-none' : ''}" title="Confirmar no WhatsApp">
-                            <i data-lucide="message-circle" class="w-5 h-5"></i>
-                        </a>
-                        
-                        <button onclick="window.updateStatus('${r.id}', 'present')"
-                           class="flex items-center justify-center p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-blue-500/20 ${r.status !== 'confirmed' ? 'opacity-50 pointer-events-none' : ''}" title="Check-in">
-                            <i data-lucide="user-check" class="w-5 h-5"></i>
-                        </button>
-                        
-                        <button onclick="window.updateStatus('${r.id}', 'noshow')"
-                           class="flex items-center justify-center p-2 rounded-lg bg-brand-error/10 text-brand-error hover:bg-brand-error hover:text-white transition-colors border border-brand-error/20 ${r.status === 'present' || r.status === 'noshow' ? 'opacity-50 pointer-events-none' : ''}" title="Não Compareceu">
-                            <i data-lucide="user-x" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Global function for onclick handlers in HTML string
-        window.updateStatus = async (id, status) => {
-            try {
-                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'reservations', id);
-                await updateDoc(ref, { 
-                    status: status,
-                    updatedAt: serverTimestamp()
-                });
-                // No need to reload, onSnapshot handles it
-            } catch (e) {
-                console.error("Update error:", e);
-                alert("Erro ao atualizar status.");
-            }
-        };
-
-        // Start
-        init();
-
-    </script>
+<body>
+    <div class="container">
+        <!-- Interface Cliente -->
+        <div class="client-view" id="clientView">
+            <div class="reservation-card" id="reservationForm">
+                <h1>Reserve sua Mesa</h1>
+                <p class="subtitle">Preencha os dados abaixo para fazer sua reserva</p>
+                
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label for="name">Nome Completo</label>
+                        <input type="text" id="name" required placeholder="Digite seu nome">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Telefone</label>
+                        <input type="tel" id="phone" required placeholder="(11) 98765-4321">
+                    </div>
+                    
+                    <div class="datetime-group">
+                        <div class="form-group">
+                            <label for="date">Data</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="time">Horário</label>
+                            <select id="time" required>
+                                <option value="">Selecione</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="people">Número de Pessoas</label>
+                        <select id="people" required>
+                            <option value="">Selecione</option>
+                            <option value="1">1 pessoa</option>
+                            <option value="2">2 pessoas</option>
+                            <option value="3">3 pessoas</option>
+                            <option value="4">4 pessoas</option>
+                            <option value="5">5 pessoas</option>
+                            <option value="6">6 pessoas</option>
+                            <option value="7">7 pessoas</option>
+                            <option value="8">8 pessoas</option>
+                            <option value="9">9 pessoas</option>
+                            <option value="10">10+ pessoas</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit">Fazer Reserva</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Interface Host -->
+        <div class="host-view" id="hostView">
+            <div class="host-header">
+                <div class="host-title">
+                    <h1>Painel de Reservas</h1>
+                    <div id="currentDateTime"></div>
+                </div>
+                
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="filterDate">Data:</label>
+                        <input type="date" id="filterDate">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filterTime">Horário:</label>
+                        <select id="filterTime">
+                            <option value="">Todos</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="12:00">12:00</option>
+                            <option value="12:30">12:30</option>
+                            <option value="13:00">13:00</option>
+                            <option value="13:30">13:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="18:00">18:00</option>
+                            <option value="18:30">18:30</option>
+                            <option value="19:00">19:00</option>
+                            <option value="19:30">19:30</option>
+                            <option value="20:00">20:00</option>
+                            <option value="20:30">20:30</option>
+                            <option value="21:00">21:00</option>
+                            <option value="21:30">21:30</option>
+                            <option value="22:00">22:00</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filterStatus">Status:</label>
+                        <select id="filterStatus">
+                            <option value="">Todos</option>
+                            <option value="pending">Pendente</option>
+                            <option value="confirmed">Confirmada</option>
+                            <option value="present">Presente</option>
+                            <option value="noshow">Não Compareceu</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reservations-grid" id="reservationsList">
+                <div class="loading">Carregando reservas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // ============= CONFIGURAÇÕES DO SISTEMA =============
+        // Configure aqui o número máximo de reservas por horário
+        const MAX_RESERVATIONS_PER_SLOT = 5; // ALTERE ESTE NÚMERO CONFORME NECESSÁRIO
+        
+        // Horários disponíveis para reserva
+        const AVAILABLE_TIMES = [
+            "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00",
+            "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"
+        ];
+
+        // Configuração do Firebase (adicione suas credenciais aqui)
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGXNRpRxEqHQxyxzHmT6pcnxd6eFy8iQM",
+            authDomain: "sistema-de-reserva-56c90.firebaseapp.com",
+            projectId: "sistema-de-reserva-56c90",
+            storageBucket: "sistema-de-reserva-56c90.firebasestorage.app",
+            messagingSenderId: "818842876841",
+            appId: "1:818842876841:web:e616fa6aba6faeacf062b8"
+        };
+
+        // Inicializar Firebase (será ativado quando você adicionar as credenciais)
+        let db = null;
+        if (firebaseConfig.apiKey !== "SUA_API_KEY") {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        }
+
+        // Sistema de armazenamento local para demonstração
+        class LocalStorage {
+            constructor() {
+                this.reservations = this.loadReservations();
+            }
+
+            loadReservations() {
+                const stored = localStorage.getItem('reservations');
+                return stored ? JSON.parse(stored) : [];
+            }
+
+            saveReservations() {
+                localStorage.setItem('reservations', JSON.stringify(this.reservations));
+            }
+
+            addReservation(data) {
+                const reservation = {
+                    ...data,
+                    id: Date.now().toString(),
+                    createdAt: new Date().toISOString()
+                };
+                this.reservations.push(reservation);
+                this.saveReservations();
+                return Promise.resolve(reservation);
+            }
+
+            getReservations(filters = {}) {
+                let filtered = [...this.reservations];
+                
+                if (filters.date) {
+                    filtered = filtered.filter(r => r.date === filters.date);
+                }
+                if (filters.time) {
+                    filtered = filtered.filter(r => r.time === filters.time);
+                }
+                if (filters.status) {
+                    filtered = filtered.filter(r => r.status === filters.status);
+                }
+                
+                // Ordenar por data e hora
+                filtered.sort((a, b) => {
+                    const dateCompare = a.date.localeCompare(b.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    return a.time.localeCompare(b.time);
+                });
+                
+                return Promise.resolve(filtered);
+            }
+
+            updateReservation(id, updates) {
+                const index = this.reservations.findIndex(r => r.id === id);
+                if (index !== -1) {
+                    this.reservations[index] = { ...this.reservations[index], ...updates };
+                    this.saveReservations();
+                }
+                return Promise.resolve();
+            }
+
+            onSnapshot(callback) {
+                // Simular real-time updates
+                setInterval(() => {
+                    this.getReservations().then(callback);
+                }, 1000);
+                
+                // Chamar imediatamente
+                this.getReservations().then(callback);
+            }
+        }
+
+        // Usar armazenamento local se Firebase não estiver configurado
+        const storage = db ? null : new LocalStorage();
+
+        // Controle de visualização
+        const urlParams = new URLSearchParams(window.location.search);
+        const isHostView = urlParams.get('view') === 'host';
+
+        if (isHostView) {
+            document.getElementById('clientView').style.display = 'none';
+            document.getElementById('hostView').style.display = 'block';
+            initHostView();
+        } else {
+            initClientView();
+        }
+
+        // ============= FUNÇÕES DE DISPONIBILIDADE =============
+        async function checkSlotAvailability(date, time) {
+            try {
+                let confirmedCount = 0;
+
+                if (db) {
+                    // Contar reservas confirmadas no Firebase
+                    const snapshot = await db.collection('reservations')
+                        .where('date', '==', date)
+                        .where('time', '==', time)
+                        .where('status', '==', 'confirmed')
+                        .get();
+                    confirmedCount = snapshot.docs.length;
+                } else {
+                    // Contar reservas confirmadas localmente
+                    const reservations = await storage.getReservations({ date, time });
+                    confirmedCount = reservations.filter(r => r.status === 'confirmed').length;
+                }
+
+                return confirmedCount < MAX_RESERVATIONS_PER_SLOT;
+            } catch (error) {
+                console.error('Erro ao verificar disponibilidade:', error);
+                return true; // Em caso de erro, permitir reserva
+            }
+        }
+
+        async function updateTimeSlots(selectedDate) {
+            const timeSelect = document.getElementById('time');
+            timeSelect.innerHTML = '<option value="">Carregando...</option>';
+
+            if (!selectedDate) {
+                timeSelect.innerHTML = '<option value="">Selecione uma data primeiro</option>';
+                return;
+            }
+
+            const availableSlots = [];
+            
+            for (const time of AVAILABLE_TIMES) {
+                const isAvailable = await checkSlotAvailability(selectedDate, time);
+                if (isAvailable) {
+                    availableSlots.push(time);
+                }
+            }
+
+            if (availableSlots.length === 0) {
+                timeSelect.innerHTML = '<option value="">Nenhum horário disponível</option>';
+            } else {
+                timeSelect.innerHTML = '<option value="">Selecione um horário</option>' +
+                    availableSlots.map(time => `<option value="${time}">${time}</option>`).join('');
+            }
+        }
+
+        // ============= INTERFACE CLIENTE =============
+        function initClientView() {
+            // Definir data mínima como hoje
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').min = today;
+            document.getElementById('date').value = today;
+
+            // Atualizar horários quando a data for selecionada
+            document.getElementById('date').addEventListener('change', function(e) {
+                updateTimeSlots(e.target.value);
+            });
+
+            // Carregar horários para hoje
+            updateTimeSlots(today);
+
+            // Formatar campo de telefone
+            document.getElementById('phone').addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 0) {
+                    if (value.length <= 11) {
+                        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                    }
+                    e.target.value = value;
+                }
+            });
+
+            // Submissão do formulário
+            document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value;
+
+                // Verificar disponibilidade antes de salvar
+                const isAvailable = await checkSlotAvailability(date, time);
+                if (!isAvailable) {
+                    alert('Desculpe, este horário não está mais disponível. Por favor, escolha outro horário.');
+                    updateTimeSlots(date); // Atualizar lista de horários
+                    return;
+                }
+
+                const reservation = {
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    date: date,
+                    time: time,
+                    people: document.getElementById('people').value,
+                    status: 'pending'
+                };
+
+                try {
+                    let reservationId;
+                    
+                    if (db) {
+                        // Salvar no Firebase
+                        const docRef = await db.collection('reservations').add({
+                            ...reservation,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        reservationId = docRef.id;
+                    } else {
+                        // Salvar localmente
+                        const result = await storage.addReservation(reservation);
+                        reservationId = result.id;
+                    }
+
+                    // Mostrar confirmação
+                    showConfirmation(reservation, reservationId);
+                } catch (error) {
+                    console.error('Erro ao fazer reserva:', error);
+                    alert('Erro ao processar reserva. Por favor, tente novamente.');
+                }
+            });
+        }
+
+        function showConfirmation(reservation, reservationId) {
+            const formattedDate = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
+            
+            document.getElementById('reservationForm').innerHTML = `
+                <div class="confirmation">
+                    <h2>📋 Reserva Registrada!</h2>
+                    <p>Iremos confirmar via WhatsApp em breve.</p>
+                    <p><strong>Nome:</strong> ${reservation.name}</p>
+                    <p><strong>Data:</strong> ${formattedDate}</p>
+                    <p><strong>Horário:</strong> ${reservation.time}</p>
+                    <p><strong>Pessoas:</strong> ${reservation.people}</p>
+                    <p><strong>Telefone:</strong> ${reservation.phone}</p>
+                    <p style="color: #999; font-size: 14px; margin-top: 20px;">
+                        Código da reserva: #${reservationId.substring(0, 8).toUpperCase()}
+                    </p>
+                    <p style="color: #666; font-size: 13px; margin-top: 15px;">
+                        Aguarde nossa confirmação pelo WhatsApp. Caso não receba em até 30 minutos, entre em contato conosco.
+                    </p>
+                    <button class="btn-new" onclick="location.reload()">
+                        Fazer Nova Reserva
+                    </button>
+                </div>
+            `;
+        }
+
+        // ============= INTERFACE HOST =============
+        function initHostView() {
+            // Mostrar data/hora atual
+            function updateDateTime() {
+                const now = new Date();
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                document.getElementById('currentDateTime').textContent = 
+                    now.toLocaleDateString('pt-BR', options);
+            }
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+
+            // Definir filtro de data para hoje
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('filterDate').value = today;
+
+            // Configurar listeners dos filtros
+            document.getElementById('filterDate').addEventListener('change', loadReservations);
+            document.getElementById('filterTime').addEventListener('change', loadReservations);
+            document.getElementById('filterStatus').addEventListener('change', loadReservations);
+
+            // Carregar reservas
+            if (db) {
+                // Real-time updates do Firebase
+                db.collection('reservations')
+                    .onSnapshot(() => {
+                        loadReservations();
+                    });
+            } else {
+                // Updates locais
+                storage.onSnapshot(() => {
+                    loadReservations();
+                });
+            }
+
+            loadReservations();
+        }
+
+        async function loadReservations() {
+            const filters = {
+                date: document.getElementById('filterDate').value,
+                time: document.getElementById('filterTime').value,
+                status: document.getElementById('filterStatus').value
+            };
+
+            try {
+                let reservations = [];
+
+                if (db) {
+                    // Buscar do Firebase
+                    let query = db.collection('reservations');
+                    
+                    if (filters.date) {
+                        query = query.where('date', '==', filters.date);
+                    }
+                    if (filters.time) {
+                        query = query.where('time', '==', filters.time);
+                    }
+                    if (filters.status) {
+                        query = query.where('status', '==', filters.status);
+                    }
+
+                    const snapshot = await query.get();
+                    reservations = snapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+
+                    // Ordenar
+                    reservations.sort((a, b) => {
+                        const timeCompare = a.time.localeCompare(b.time);
+                        if (timeCompare !== 0) return timeCompare;
+                        return (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0);
+                    });
+                } else {
+                    // Buscar localmente
+                    reservations = await storage.getReservations(filters);
+                }
+
+                displayReservations(reservations);
+            } catch (error) {
+                console.error('Erro ao carregar reservas:', error);
+                document.getElementById('reservationsList').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Erro ao carregar reservas</h3>
+                        <p>Por favor, recarregue a página</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayReservations(reservations) {
+            const container = document.getElementById('reservationsList');
+            
+            if (reservations.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>Nenhuma reserva encontrada</h3>
+                        <p>Ajuste os filtros ou aguarde novas reservas</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = reservations.map(reservation => {
+                const statusClass = `status-${reservation.status}`;
+                const statusText = getStatusText(reservation.status);
+                const formattedDate = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
+                
+                // Limpar número de telefone para WhatsApp
+                const cleanPhone = reservation.phone.replace(/\D/g, '');
+                const whatsappNumber = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+                
+                // Mensagem formatada para WhatsApp
+                const whatsappMessage = encodeURIComponent(
+                    `Olá ${reservation.name}! 👋\n\n` +
+                    `Sua reserva foi confirmada! ✅\n\n` +
+                    `📋 *Detalhes da Reserva:*\n` +
+                    `📅 Data: ${formattedDate}\n` +
+                    `⏰ Horário: ${reservation.time}\n` +
+                    `👥 Pessoas: ${reservation.people}\n\n` +
+                    `Por favor, chegue com 10 minutos de antecedência.\n\n` +
+                    `Aguardamos vocês! 🍽️`
+                );
+                
+                return `
+                    <div class="reservation-item">
+                        <div class="reservation-info">
+                            <div class="reservation-name">
+                                ${reservation.name}
+                                <span class="status-badge ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="reservation-details">
+                                📅 ${formattedDate} às ${reservation.time}<br>
+                                👥 ${reservation.people} pessoa${reservation.people > 1 ? 's' : ''}<br>
+                                📱 ${reservation.phone}
+                            </div>
+                        </div>
+                        <div class="reservation-actions">
+                            <a class="btn-action btn-confirm" 
+                               href="https://wa.me/${whatsappNumber}?text=${whatsappMessage}"
+                               target="_blank"
+                               onclick="updateStatus('${reservation.id}', 'confirmed')"
+                               ${reservation.status !== 'pending' ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>
+                                Confirmar
+                            </a>
+                            <button class="btn-action btn-checkin" 
+                                    onclick="updateStatus('${reservation.id}', 'present')"
+                                    ${reservation.status !== 'confirmed' ? 'disabled' : ''}>
+                                Check-in
+                            </button>
+                            <button class="btn-action btn-noshow" 
+                                    onclick="updateStatus('${reservation.id}', 'noshow')"
+                                    ${reservation.status === 'present' || reservation.status === 'noshow' ? 'disabled' : ''}>
+                                Não Compareceu
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Pendente',
+                'confirmed': 'Confirmada',
+                'present': 'Presente',
+                'noshow': 'Não Compareceu'
+            };
+            return statusMap[status] || status;
+        }
+
+        async function updateStatus(reservationId, newStatus) {
+            try {
+                if (db) {
+                    // Atualizar no Firebase
+                    await db.collection('reservations').doc(reservationId).update({
+                        status: newStatus,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } else {
+                    // Atualizar localmente
+                    await storage.updateReservation(reservationId, { status: newStatus });
+                }
+                
+                // Recarregar lista
+                loadReservations();
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar status. Por favor, tente novamente.');
+            }
+        }
+    </script>
 </body>
 </html>

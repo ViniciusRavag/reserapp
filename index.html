@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="antialiased">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bistrô Elegance - Reservas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reserva Exclusiva | Restaurante</title>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Tailwind Config -->
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind Config for Custom Colors -->
     <script>
         tailwind.config = {
             theme: {
@@ -24,741 +26,815 @@
                         serif: ['Playfair Display', 'serif'],
                     },
                     colors: {
-                        primary: '#c2410c', // Orange-700
-                        secondary: '#1f2937', // Gray-800
-                        accent: '#f59e0b', // Amber-500
-                        surface: '#ffffff',
-                        background: '#f3f4f6', // Gray-100
+                        brand: {
+                            black: '#0f0f0f',
+                            dark: '#18181b',
+                            card: '#27272a',
+                            orange: '#ff6b35',
+                            gold: '#f59e0b',
+                            success: '#10b981',
+                            error: '#ef4444',
+                            text: '#e4e4e7',
+                            muted: '#a1a1aa'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
                     }
                 }
             }
         }
     </script>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
     <style>
-        /* Custom Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+        ::-webkit-scrollbar-track {
+            background: #18181b; 
         }
-        
-        /* Custom Scrollbar for Host View */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d1d5db;
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46; 
             border-radius: 4px;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525b; 
         }
 
-        /* Glass effect for toasts */
-        .glass-toast {
-            background: rgba(255, 255, 255, 0.95);
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(39, 39, 42, 0.7);
             backdrop-filter: blur(10px);
-            border-left: 4px solid;
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Hide number input spinners */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        
+        /* Mobile safe area */
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
         }
     </style>
 </head>
-<body class="bg-background text-gray-700 font-sans min-h-screen">
+<body class="bg-brand-black text-brand-text min-h-screen selection:bg-brand-orange selection:text-white overflow-x-hidden">
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-brand-black transition-opacity duration-500">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-orange mx-auto mb-4"></div>
+            <p class="text-brand-muted text-sm tracking-widest uppercase">Carregando Sistema</p>
+        </div>
+    </div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="w-full min-h-screen flex flex-col">
+    <!-- MAIN APP CONTAINER -->
+    <div id="app" class="relative hidden">
         
-        <!-- Header (Shared) -->
-        <header class="bg-white shadow-sm sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-utensils text-primary text-xl"></i>
-                    <span class="font-serif text-2xl font-bold text-gray-900 tracking-tight">Bistrô Elegance</span>
-                </div>
-                <div class="text-xs text-gray-400">
-                    <span id="header-clock" class="font-mono hidden sm:inline-block">--:--</span>
+        <!-- ================= CLIENT VIEW (BOOKING) ================= -->
+        <div id="clientView" class="min-h-screen flex flex-col hidden">
+            <!-- Header Image/Hero -->
+            <div class="relative h-48 md:h-64 w-full overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-brand-black z-10"></div>
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center opacity-60"></div>
+                
+                <div class="absolute bottom-0 left-0 w-full p-6 z-20">
+                    <h1 class="font-serif text-3xl md:text-4xl text-white font-bold mb-1">Restaurante Exclusivo</h1>
+                    <p class="text-brand-orange text-sm font-medium tracking-wide uppercase flex items-center gap-2">
+                        <i data-lucide="utensils" class="w-4 h-4"></i> Alta Gastronomia
+                    </p>
                 </div>
             </div>
-        </header>
 
-        <!-- CLIENT VIEW -->
-        <main id="clientView" class="flex-grow flex items-center justify-center p-4 sm:p-8 animate-fade-in">
-            <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <!-- Cover Image / Decorative Header -->
-                <div class="h-32 bg-gradient-to-r from-gray-900 to-gray-800 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 opacity-20 pattern-dots"></div> <!-- Pattern placeholder -->
-                    <div class="text-center relative z-10">
-                        <h2 class="text-white font-serif text-2xl font-semibold">Faça sua Reserva</h2>
-                        <p class="text-gray-300 text-sm mt-1">Experimente o inesquecível</p>
+            <!-- Booking Content -->
+            <main class="flex-1 px-4 py-6 md:px-6 max-w-2xl mx-auto w-full relative -mt-6 z-30">
+                <div class="glass rounded-2xl p-6 shadow-2xl shadow-black/50 animate-slide-up" id="bookingCard">
+                    
+                    <!-- Progress Steps (Optional visual cue) -->
+                    <div class="flex items-center justify-between mb-8 px-2">
+                        <div class="flex items-center gap-2 text-brand-orange">
+                            <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
+                            <span class="text-xs font-bold uppercase">Reserva</span>
+                        </div>
+                        <div class="h-[1px] bg-white/10 flex-1 mx-4"></div>
+                        <div class="text-brand-muted text-xs font-medium uppercase">Confirmação</div>
                     </div>
-                </div>
 
-                <!-- Reservation Form -->
-                <div id="reservationFormWrapper" class="p-6 sm:p-8">
-                    <form id="bookingForm" class="space-y-5">
-                        <!-- Nome -->
-                        <div class="space-y-1">
-                            <label for="name" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Nome Completo</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-regular fa-user text-gray-400"></i>
-                                </div>
-                                <input type="text" id="name" required 
-                                    class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 border focus:border-primary focus:ring-primary sm:text-sm py-2.5 transition-shadow shadow-sm outline-none" 
-                                    placeholder="Ex: João Silva">
-                            </div>
-                        </div>
-
-                        <!-- Telefone -->
-                        <div class="space-y-1">
-                            <label for="phone" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">WhatsApp / Telefone</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-phone text-gray-400"></i>
-                                </div>
-                                <input type="tel" id="phone" required 
-                                    class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 border focus:border-primary focus:ring-primary sm:text-sm py-2.5 transition-shadow shadow-sm outline-none" 
-                                    placeholder="(11) 99999-9999">
-                            </div>
-                        </div>
-
-                        <!-- Grid Data e Hora -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label for="date" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Data</label>
+                    <form id="bookingForm" class="space-y-6">
+                        
+                        <!-- Personal Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Seu Nome</label>
                                 <div class="relative">
-                                    <input type="date" id="date" required 
-                                        class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:border-primary focus:ring-primary sm:text-sm py-2.5 shadow-sm outline-none text-gray-700">
+                                    <i data-lucide="user" class="absolute left-4 top-3.5 w-5 h-5 text-brand-muted"></i>
+                                    <input type="text" id="name" required placeholder="João Silva" 
+                                        class="w-full bg-brand-dark border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder:text-white/20">
                                 </div>
                             </div>
-                            <div class="space-y-1">
-                                <label for="time" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</label>
+
+                            <div class="space-y-2">
+                                <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">WhatsApp</label>
                                 <div class="relative">
-                                    <select id="time" required 
-                                        class="block w-full rounded-lg border-gray-300 bg-gray-50 border focus:border-primary focus:ring-primary sm:text-sm py-2.5 shadow-sm outline-none text-gray-700">
-                                        <option value="">Selecione a data</option>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                                    </div>
+                                    <i data-lucide="phone" class="absolute left-4 top-3.5 w-5 h-5 text-brand-muted"></i>
+                                    <input type="tel" id="phone" required placeholder="(11) 99999-9999" 
+                                        class="w-full bg-brand-dark border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all placeholder:text-white/20">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pessoas -->
-                        <div class="space-y-1">
-                            <label for="people" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Número de Pessoas</label>
+                        <!-- Date Selection -->
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Data da Reserva</label>
                             <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-users text-gray-400"></i>
-                                </div>
-                                <select id="people" required 
-                                    class="pl-10 block w-full rounded-lg border-gray-300 bg-gray-50 border focus:border-primary focus:ring-primary sm:text-sm py-2.5 shadow-sm outline-none text-gray-700 appearance-none">
-                                    <option value="">Selecione a quantidade</option>
-                                    <option value="1">1 pessoa</option>
-                                    <option value="2">2 pessoas</option>
-                                    <option value="3">3 pessoas</option>
-                                    <option value="4">4 pessoas</option>
-                                    <option value="5">5 pessoas</option>
-                                    <option value="6">6 pessoas</option>
-                                    <option value="7">7 pessoas</option>
-                                    <option value="8">8 pessoas</option>
-                                    <option value="9">9 pessoas</option>
-                                    <option value="10">10+ pessoas</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                    <i class="fa-solid fa-chevron-down text-xs"></i>
-                                </div>
+                                <i data-lucide="calendar" class="absolute left-4 top-3.5 w-5 h-5 text-brand-muted"></i>
+                                <input type="date" id="date" required 
+                                    class="w-full bg-brand-dark border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all [color-scheme:dark]">
                             </div>
                         </div>
 
-                        <!-- Botão Submit -->
-                        <button type="submit" 
-                            class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 transform hover:-translate-y-0.5 mt-4">
-                            Confirmar Reserva
+                        <!-- People Count Stepper -->
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Número de Pessoas</label>
+                            <div class="flex items-center bg-brand-dark border border-white/10 rounded-xl p-1">
+                                <button type="button" id="btnDecreasePeople" class="w-12 h-10 flex items-center justify-center text-brand-orange hover:bg-white/5 rounded-lg transition-colors">
+                                    <i data-lucide="minus" class="w-5 h-5"></i>
+                                </button>
+                                <div class="flex-1 text-center font-semibold text-lg border-l border-r border-white/5 h-6 flex items-center justify-center">
+                                    <span id="peopleDisplay">2 pessoas</span>
+                                    <input type="hidden" id="people" value="2">
+                                </div>
+                                <button type="button" id="btnIncreasePeople" class="w-12 h-10 flex items-center justify-center text-brand-orange hover:bg-white/5 rounded-lg transition-colors">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Time Slots Grid -->
+                        <div class="space-y-2">
+                            <label class="text-xs uppercase tracking-wider text-brand-muted font-semibold ml-1">Horários Disponíveis</label>
+                            <div id="timeSlotsContainer" class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                <!-- Slots injected via JS -->
+                                <div class="col-span-full py-8 text-center text-brand-muted text-sm bg-brand-dark/50 rounded-xl border border-white/5 border-dashed">
+                                    Selecione uma data para ver horários
+                                </div>
+                            </div>
+                            <input type="hidden" id="time" required>
+                            <p id="timeError" class="text-brand-error text-xs hidden mt-1">Selecione um horário disponível.</p>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-brand-orange to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-orange/20 hover:shadow-brand-orange/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span>Confirmar Reserva</span>
+                            <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
                         </button>
+
                     </form>
                 </div>
 
-                <!-- Confirmation Screen (Hidden by default) -->
-                <div id="confirmationScreen" class="hidden p-8 text-center animate-fade-in">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fa-solid fa-check text-green-600 text-2xl"></i>
+                <!-- Success State (Hidden by default) -->
+                <div id="successCard" class="glass rounded-2xl p-8 shadow-2xl text-center hidden animate-slide-up">
+                    <div class="w-20 h-20 bg-brand-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="check" class="w-10 h-10 text-brand-success"></i>
                     </div>
-                    <h2 class="text-2xl font-serif font-bold text-gray-900 mb-2">Reserva Solicitada!</h2>
-                    <p class="text-gray-500 mb-6">Aguarde nossa confirmação via WhatsApp.</p>
+                    <h2 class="font-serif text-2xl font-bold text-white mb-2">Reserva Recebida!</h2>
+                    <p class="text-brand-muted mb-6">Sua solicitação está pendente de confirmação. Enviaremos uma mensagem no seu WhatsApp em breve.</p>
                     
-                    <div class="bg-gray-50 rounded-xl p-4 text-left border border-gray-100 mb-6 relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-1 h-full bg-accent"></div>
-                        <div class="grid grid-cols-2 gap-y-3 text-sm">
-                            <div class="text-gray-500">Nome:</div>
-                            <div class="font-medium text-gray-900 text-right" id="confName">--</div>
-                            
-                            <div class="text-gray-500">Data/Hora:</div>
-                            <div class="font-medium text-gray-900 text-right" id="confDate">--</div>
-                            
-                            <div class="text-gray-500">Mesa para:</div>
-                            <div class="font-medium text-gray-900 text-right" id="confPeople">--</div>
-                            
-                            <div class="text-gray-500">Código:</div>
-                            <div class="font-mono font-medium text-gray-500 text-right" id="confId">--</div>
+                    <div class="bg-brand-dark/50 rounded-xl p-4 text-left space-y-3 border border-white/5 mb-8">
+                        <div class="flex justify-between">
+                            <span class="text-brand-muted text-sm">Nome</span>
+                            <span class="font-medium text-white" id="confirmName">João Silva</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-brand-muted text-sm">Data & Hora</span>
+                            <span class="font-medium text-white"><span id="confirmDate">01/01</span> às <span id="confirmTime">20:00</span></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-brand-muted text-sm">Pessoas</span>
+                            <span class="font-medium text-white" id="confirmPeople">2</span>
+                        </div>
+                        <div class="pt-3 border-t border-white/10 flex justify-between items-center">
+                            <span class="text-brand-muted text-xs">Cód. Reserva</span>
+                            <span class="font-mono text-brand-orange text-xs" id="confirmId">#A1B2</span>
                         </div>
                     </div>
 
-                    <button onclick="location.reload()" 
-                        class="w-full py-2.5 px-4 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors">
+                    <button onclick="location.reload()" class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 rounded-xl transition-colors">
                         Fazer Nova Reserva
                     </button>
                 </div>
-            </div>
-        </main>
-
-        <!-- HOST VIEW -->
-        <main id="hostView" class="hidden flex-grow bg-gray-50 p-4 sm:p-6 animate-fade-in">
-            <div class="max-w-7xl mx-auto space-y-6">
                 
-                <!-- Dashboard Header -->
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 class="text-2xl font-serif font-bold text-gray-900">Painel do Host</h1>
-                        <p class="text-gray-500 text-sm" id="currentDateDisplay">Carregando data...</p>
+                <footer class="mt-8 text-center pb-6">
+                    <p class="text-brand-muted text-xs">© 2024 Restaurante Exclusivo</p>
+                    <a href="?view=host" class="text-brand-dark text-[10px] mt-2 inline-block hover:text-brand-muted transition-colors">Acesso Administrativo</a>
+                </footer>
+            </main>
+        </div>
+
+
+        <!-- ================= HOST VIEW (DASHBOARD) ================= -->
+        <div id="hostView" class="min-h-screen bg-brand-black flex hidden">
+            
+            <!-- Sidebar -->
+            <aside class="hidden md:flex flex-col w-64 bg-brand-card border-r border-white/5 fixed h-full z-20">
+                <div class="p-6">
+                    <h1 class="font-serif text-2xl text-white font-bold">Admin Panel</h1>
+                    <p class="text-brand-muted text-xs tracking-wider uppercase mt-1">Gestão de Reservas</p>
+                </div>
+                
+                <nav class="flex-1 px-4 space-y-2 mt-4">
+                    <a href="#" class="flex items-center gap-3 px-4 py-3 bg-brand-orange/10 text-brand-orange rounded-xl border border-brand-orange/20">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    <a href="?view=client" class="flex items-center gap-3 px-4 py-3 text-brand-muted hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                        <i data-lucide="external-link" class="w-5 h-5"></i>
+                        <span class="font-medium">Ver Site</span>
+                    </a>
+                </nav>
+
+                <div class="p-4 border-t border-white/5">
+                    <div id="hostClock" class="text-center font-mono text-brand-muted text-sm">--:--</div>
+                    <div id="hostDate" class="text-center text-xs text-brand-muted/60 mt-1">...</div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto">
+                
+                <!-- Mobile Header -->
+                <div class="md:hidden flex items-center justify-between mb-6">
+                    <h1 class="font-serif text-xl font-bold">Gestão</h1>
+                    <a href="?view=client" class="p-2 bg-brand-card rounded-lg border border-white/10">
+                        <i data-lucide="external-link" class="w-5 h-5"></i>
+                    </a>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-brand-card p-5 rounded-xl border border-white/5">
+                        <p class="text-brand-muted text-xs uppercase font-bold mb-2">Hoje</p>
+                        <h3 class="text-2xl md:text-3xl font-bold text-white" id="statTotal">0</h3>
+                        <p class="text-xs text-brand-muted mt-1">Total Reservas</p>
                     </div>
-                    <!-- Quick Stats -->
-                    <div class="flex gap-3 overflow-x-auto pb-2 sm:pb-0">
-                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 min-w-[100px]">
-                            <span class="block text-xs text-gray-400 uppercase">Total</span>
-                            <span class="block text-xl font-bold text-gray-800" id="statTotal">0</span>
-                        </div>
-                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 min-w-[100px]">
-                            <span class="block text-xs text-orange-400 uppercase">Pendente</span>
-                            <span class="block text-xl font-bold text-orange-600" id="statPending">0</span>
-                        </div>
-                        <div class="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-100 min-w-[100px]">
-                            <span class="block text-xs text-green-400 uppercase">Confirmado</span>
-                            <span class="block text-xl font-bold text-green-600" id="statConfirmed">0</span>
-                        </div>
+                    <div class="bg-brand-card p-5 rounded-xl border border-brand-success/20 bg-gradient-to-br from-brand-card to-brand-success/5">
+                        <p class="text-brand-success text-xs uppercase font-bold mb-2">Confirmadas</p>
+                        <h3 class="text-2xl md:text-3xl font-bold text-brand-success" id="statConfirmed">0</h3>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-xl border border-brand-gold/20 bg-gradient-to-br from-brand-card to-brand-gold/5">
+                        <p class="text-brand-gold text-xs uppercase font-bold mb-2">Pendentes</p>
+                        <h3 class="text-2xl md:text-3xl font-bold text-brand-gold" id="statPending">0</h3>
+                    </div>
+                    <div class="bg-brand-card p-5 rounded-xl border border-brand-orange/20 bg-gradient-to-br from-brand-card to-brand-orange/5">
+                        <p class="text-brand-orange text-xs uppercase font-bold mb-2">Pax Total</p>
+                        <h3 class="text-2xl md:text-3xl font-bold text-brand-orange" id="statPax">0</h3>
                     </div>
                 </div>
 
-                <!-- Filters Toolbar -->
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200 flex flex-wrap gap-4 items-end">
-                    <div class="w-full sm:w-auto flex-1 min-w-[200px]">
-                        <label for="filterDate" class="block text-xs font-semibold text-gray-500 mb-1">Filtrar Data</label>
-                        <input type="date" id="filterDate" class="w-full rounded-md border-gray-300 bg-gray-50 text-sm focus:ring-primary focus:border-primary">
-                    </div>
-                    <div class="w-1/2 sm:w-auto min-w-[120px]">
-                        <label for="filterTime" class="block text-xs font-semibold text-gray-500 mb-1">Horário</label>
-                        <select id="filterTime" class="w-full rounded-md border-gray-300 bg-gray-50 text-sm focus:ring-primary focus:border-primary">
-                            <option value="">Todos</option>
-                            <option value="11:00">11:00</option><option value="11:30">11:30</option>
-                            <option value="12:00">12:00</option><option value="12:30">12:30</option>
-                            <option value="13:00">13:00</option><option value="13:30">13:30</option>
-                            <option value="14:00">14:00</option><option value="18:00">18:00</option>
-                            <option value="18:30">18:30</option><option value="19:00">19:00</option>
-                            <option value="19:30">19:30</option><option value="20:00">20:00</option>
-                            <option value="20:30">20:30</option><option value="21:00">21:00</option>
-                            <option value="21:30">21:30</option><option value="22:00">22:00</option>
-                        </select>
-                    </div>
-                    <div class="w-1/2 sm:w-auto min-w-[120px]">
-                        <label for="filterStatus" class="block text-xs font-semibold text-gray-500 mb-1">Status</label>
-                        <select id="filterStatus" class="w-full rounded-md border-gray-300 bg-gray-50 text-sm focus:ring-primary focus:border-primary">
-                            <option value="">Todos</option>
+                <!-- Filters Bar -->
+                <div class="bg-brand-card rounded-xl p-4 mb-6 border border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between sticky top-0 z-10 shadow-lg shadow-black/20">
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div class="relative w-full md:w-auto">
+                            <i data-lucide="calendar" class="absolute left-3 top-2.5 w-4 h-4 text-brand-muted"></i>
+                            <input type="date" id="filterDate" class="bg-brand-dark border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm text-white focus:outline-none focus:border-brand-orange w-full md:w-auto [color-scheme:dark]">
+                        </div>
+                        <select id="filterStatus" class="bg-brand-dark border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-brand-orange">
+                            <option value="">Status: Todos</option>
                             <option value="pending">Pendente</option>
                             <option value="confirmed">Confirmada</option>
                             <option value="present">Presente</option>
                             <option value="noshow">Não Compareceu</option>
                         </select>
                     </div>
-                    <button onclick="loadReservations()" class="w-full sm:w-auto px-4 py-2 bg-gray-800 text-white rounded-md text-sm hover:bg-gray-700 transition-colors">
-                        <i class="fa-solid fa-filter mr-1"></i> Atualizar
-                    </button>
-                </div>
-
-                <!-- Grid de Reservas -->
-                <div id="reservationsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
-                    <!-- Cards will be injected here JS -->
-                    <div class="col-span-full text-center py-12 text-gray-400">
-                        <i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i>
-                        <p>Carregando reservas...</p>
+                    <div class="flex gap-2 w-full md:w-auto">
+                         <select id="filterTime" class="bg-brand-dark border border-white/10 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-brand-orange w-full md:w-auto">
+                            <option value="">Horário: Todos</option>
+                        </select>
                     </div>
                 </div>
-            </div>
-        </main>
-        
-        <!-- Footer simple -->
-        <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-400">
-            <p>&copy; 2024 Bistrô Elegance. Todos os direitos reservados.</p>
-            <a href="?view=host" class="mt-2 inline-block opacity-20 hover:opacity-100 transition-opacity">Acesso Administrativo</a>
-        </footer>
+
+                <!-- Reservations Grid -->
+                <div id="reservationsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-10">
+                    <!-- Cards will be injected here -->
+                    <div class="col-span-full py-12 text-center text-brand-muted">
+                        <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+                        <p>Buscando reservas...</p>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
     </div>
 
-    <!-- SCRIPT DA APLICAÇÃO -->
-    <script>
-        // ============= CONFIGURAÇÕES DO SISTEMA =============
-        const MAX_RESERVATIONS_PER_SLOT = 5; 
-        
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot, doc, updateDoc, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // --- GLOBAL CONFIGURATION ---
+        const MAX_RESERVATIONS_PER_SLOT = 5;
         const AVAILABLE_TIMES = [
             "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00",
             "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00"
         ];
 
-        // Configuração do Firebase 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCGXNRpRxEqHQxyxzHmT6pcnxd6eFy8iQM",
-            authDomain: "sistema-de-reserva-56c90.firebaseapp.com",
-            projectId: "sistema-de-reserva-56c90",
-            storageBucket: "sistema-de-reserva-56c90.firebasestorage.app",
-            messagingSenderId: "818842876841",
-            appId: "1:818842876841:web:e616fa6aba6faeacf062b8"
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
+        const appId = window.__app_id || 'default-app';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State
+        let currentUser = null;
+        let isHostMode = false;
+
+        // --- DOM ELEMENTS ---
+        const els = {
+            app: document.getElementById('app'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            clientView: document.getElementById('clientView'),
+            hostView: document.getElementById('hostView'),
+            // Client Forms
+            bookingForm: document.getElementById('bookingForm'),
+            nameInput: document.getElementById('name'),
+            phoneInput: document.getElementById('phone'),
+            dateInput: document.getElementById('date'),
+            timeInput: document.getElementById('time'),
+            peopleInput: document.getElementById('people'),
+            peopleDisplay: document.getElementById('peopleDisplay'),
+            timeSlotsContainer: document.getElementById('timeSlotsContainer'),
+            btnIncrease: document.getElementById('btnIncreasePeople'),
+            btnDecrease: document.getElementById('btnDecreasePeople'),
+            bookingCard: document.getElementById('bookingCard'),
+            successCard: document.getElementById('successCard'),
+            submitBtn: document.getElementById('submitBtn'),
+            // Host Elements
+            filterDate: document.getElementById('filterDate'),
+            filterStatus: document.getElementById('filterStatus'),
+            filterTime: document.getElementById('filterTime'),
+            reservationsGrid: document.getElementById('reservationsGrid'),
+            stats: {
+                total: document.getElementById('statTotal'),
+                confirmed: document.getElementById('statConfirmed'),
+                pending: document.getElementById('statPending'),
+                pax: document.getElementById('statPax')
+            }
         };
 
-        // Inicializar Firebase 
-        let db = null;
-        if (firebaseConfig.apiKey !== "SUA_API_KEY") {
-            try {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-            } catch (e) {
-                console.warn("Erro ao iniciar Firebase, usando LocalStorage", e);
-            }
+        // --- INITIALIZATION ---
+        async function init() {
+            // Check view mode
+            const urlParams = new URLSearchParams(window.location.search);
+            isHostMode = urlParams.get('view') === 'host';
+
+            // Init Lucide Icons
+            lucide.createIcons();
+
+            // Setup Auth with Correct Token Handling
+            const initAuth = async () => {
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+                    try {
+                        await signInWithCustomToken(auth, window.__initial_auth_token);
+                    } catch (e) {
+                        console.error("Custom token auth failed, falling back to anonymous", e);
+                        await signInAnonymously(auth);
+                    }
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+
+            initAuth();
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    els.loadingOverlay.classList.add('opacity-0');
+                    setTimeout(() => els.loadingOverlay.remove(), 500);
+                    els.app.classList.remove('hidden');
+
+                    if (isHostMode) {
+                        initHostView();
+                    } else {
+                        initClientView();
+                    }
+                }
+            });
         }
 
-        // ============= STORAGE LOCAL (FALLBACK) =============
-        class LocalStorage {
-            constructor() {
-                this.reservations = this.loadReservations();
-            }
+        // --- CLIENT VIEW LOGIC ---
+        function initClientView() {
+            els.hostView.classList.add('hidden');
+            els.clientView.classList.remove('hidden');
 
-            loadReservations() {
-                const stored = localStorage.getItem('reservations');
-                return stored ? JSON.parse(stored) : [];
-            }
+            // Set Date Min to Today
+            const today = new Date().toISOString().split('T')[0];
+            els.dateInput.min = today;
+            els.dateInput.value = today;
 
-            saveReservations() {
-                localStorage.setItem('reservations', JSON.stringify(this.reservations));
-            }
+            // People Stepper Logic
+            els.btnIncrease.onclick = () => updatePeople(1);
+            els.btnDecrease.onclick = () => updatePeople(-1);
 
-            addReservation(data) {
-                const reservation = {
-                    ...data,
-                    id: Date.now().toString(),
-                    createdAt: new Date().toISOString()
-                };
-                this.reservations.push(reservation);
-                this.saveReservations();
-                return Promise.resolve(reservation);
-            }
-
-            getReservations(filters = {}) {
-                let filtered = [...this.reservations];
-                
-                if (filters.date) {
-                    filtered = filtered.filter(r => r.date === filters.date);
-                }
-                if (filters.time) {
-                    filtered = filtered.filter(r => r.time === filters.time);
-                }
-                if (filters.status) {
-                    filtered = filtered.filter(r => r.status === filters.status);
-                }
-                
-                filtered.sort((a, b) => {
-                    const dateCompare = a.date.localeCompare(b.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return a.time.localeCompare(b.time);
-                });
-                
-                return Promise.resolve(filtered);
-            }
-
-            updateReservation(id, updates) {
-                const index = this.reservations.findIndex(r => r.id === id);
-                if (index !== -1) {
-                    this.reservations[index] = { ...this.reservations[index], ...updates };
-                    this.saveReservations();
-                }
-                return Promise.resolve();
-            }
-
-            onSnapshot(callback) {
-                setInterval(() => {
-                    this.getReservations().then(callback);
-                }, 2000); // Polling simples
-                this.getReservations().then(callback);
-            }
-        }
-
-        const storage = db ? null : new LocalStorage();
-
-        // ============= UI UTILS =============
-        
-        // Toast Notification System
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            let borderColor = type === 'success' ? 'border-green-500' : (type === 'error' ? 'border-red-500' : 'border-blue-500');
-            let iconColor = type === 'success' ? 'text-green-500' : (type === 'error' ? 'text-red-500' : 'text-blue-500');
-            let icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
-
-            toast.className = `glass-toast ${borderColor} shadow-lg rounded-lg p-4 mb-3 w-80 transform transition-all duration-300 translate-x-full flex items-center gap-3`;
-            toast.innerHTML = `
-                <i class="fa-solid ${icon} ${iconColor} text-lg"></i>
-                <p class="text-sm font-medium text-gray-700">${message}</p>
-            `;
-
-            container.appendChild(toast);
-
-            // Animate In
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-x-full');
+            // Phone Formatting
+            els.phoneInput.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 11) v = v.substring(0, 11);
+                if (v.length > 2) v = `(${v.substring(0,2)}) ${v.substring(2)}`;
+                if (v.length > 9) v = `${v.substring(0,9)}-${v.substring(9)}`;
+                e.target.value = v;
             });
 
-            // Remove after 3s
-            setTimeout(() => {
-                toast.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            // Date Change Listener
+            els.dateInput.addEventListener('change', (e) => loadTimeSlots(e.target.value));
+
+            // Load initial slots
+            loadTimeSlots(today);
+
+            // Form Submit
+            els.bookingForm.addEventListener('submit', handleBookingSubmit);
         }
 
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('header-clock').textContent = now.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // ============= LÓGICA CORE =============
-        
-        // Controle de Views
-        const urlParams = new URLSearchParams(window.location.search);
-        const isHostView = urlParams.get('view') === 'host';
-
-        if (isHostView) {
-            document.getElementById('clientView').classList.add('hidden');
-            document.getElementById('hostView').classList.remove('hidden');
-            document.getElementById('hostView').classList.add('flex'); // Enable flex
-            initHostView();
-        } else {
-            initClientView();
+        function updatePeople(change) {
+            let current = parseInt(els.peopleInput.value);
+            let next = current + change;
+            if (next < 1) next = 1;
+            if (next > 20) next = 20;
+            
+            els.peopleInput.value = next;
+            els.peopleDisplay.textContent = `${next} pessoa${next > 1 ? 's' : ''}`;
         }
 
-        async function checkSlotAvailability(date, time) {
+        async function loadTimeSlots(date) {
+            els.timeSlotsContainer.innerHTML = `
+                <div class="col-span-full py-4 text-center text-brand-muted">
+                    <div class="animate-spin h-5 w-5 border-2 border-brand-orange rounded-full border-t-transparent mx-auto mb-2"></div>
+                    Verificando disponibilidade...
+                </div>
+            `;
+            els.timeInput.value = ''; // Reset selection
+
+            const slots = [];
+            
+            // Simplified query: Only filter by date to allow simple index usage
+            const q = query(
+                collection(db, 'artifacts', appId, 'public', 'data', 'reservations'),
+                where('date', '==', date)
+            );
+
             try {
-                let confirmedCount = 0;
-                if (db) {
-                    const snapshot = await db.collection('reservations')
-                        .where('date', '==', date)
-                        .where('time', '==', time)
-                        .where('status', '==', 'confirmed')
-                        .get();
-                    confirmedCount = snapshot.docs.length;
-                } else {
-                    const reservations = await storage.getReservations({ date, time });
-                    confirmedCount = reservations.filter(r => r.status === 'confirmed').length;
+                const querySnapshot = await getDocs(q);
+                const counts = {};
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Filter in memory for accurate counts
+                    if (['confirmed', 'pending'].includes(data.status)) {
+                        counts[data.time] = (counts[data.time] || 0) + 1;
+                    }
+                });
+
+                els.timeSlotsContainer.innerHTML = '';
+                
+                let hasAvailable = false;
+
+                AVAILABLE_TIMES.forEach(time => {
+                    const count = counts[time] || 0;
+                    const isFull = count >= MAX_RESERVATIONS_PER_SLOT;
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `
+                        py-2 px-1 rounded-lg text-sm font-medium border transition-all duration-200
+                        ${isFull 
+                            ? 'bg-brand-dark/30 border-white/5 text-white/20 cursor-not-allowed decoration-slice line-through' 
+                            : 'bg-brand-dark border-white/10 text-white hover:border-brand-orange hover:text-brand-orange focus:ring-2 focus:ring-brand-orange/50'}
+                    `;
+                    btn.textContent = time;
+                    btn.disabled = isFull;
+
+                    if (!isFull) {
+                        hasAvailable = true;
+                        btn.onclick = () => selectTimeSlot(btn, time);
+                    }
+
+                    els.timeSlotsContainer.appendChild(btn);
+                });
+
+                if (!hasAvailable) {
+                    els.timeSlotsContainer.innerHTML = `
+                        <div class="col-span-full py-4 text-center text-brand-error bg-brand-error/10 rounded-lg border border-brand-error/20">
+                            Sem horários disponíveis para esta data.
+                        </div>
+                    `;
                 }
-                return confirmedCount < MAX_RESERVATIONS_PER_SLOT;
+
             } catch (error) {
-                console.error('Erro:', error);
-                return true;
+                console.error("Error loading slots:", error);
+                els.timeSlotsContainer.innerHTML = '<div class="col-span-full text-brand-error text-center text-sm">Erro ao carregar horários.</div>';
             }
         }
 
-        async function updateTimeSlots(selectedDate) {
-            const timeSelect = document.getElementById('time');
-            timeSelect.innerHTML = '<option value="">Carregando...</option>';
-            timeSelect.disabled = true;
+        function selectTimeSlot(btn, time) {
+            // Remove active class from all
+            const allBtns = els.timeSlotsContainer.querySelectorAll('button');
+            allBtns.forEach(b => {
+                if(!b.disabled) {
+                    b.classList.remove('bg-brand-orange', 'text-white', 'border-transparent');
+                    b.classList.add('bg-brand-dark', 'text-white', 'border-white/10');
+                }
+            });
 
-            if (!selectedDate) {
-                timeSelect.innerHTML = '<option value="">Selecione uma data primeiro</option>';
+            // Add active to current
+            btn.classList.remove('bg-brand-dark', 'border-white/10');
+            btn.classList.add('bg-brand-orange', 'text-white', 'border-transparent');
+
+            els.timeInput.value = time;
+            document.getElementById('timeError').classList.add('hidden');
+        }
+
+        async function handleBookingSubmit(e) {
+            e.preventDefault();
+            
+            if (!els.timeInput.value) {
+                document.getElementById('timeError').classList.remove('hidden');
                 return;
             }
 
-            const availableSlots = [];
-            for (const time of AVAILABLE_TIMES) {
-                const isAvailable = await checkSlotAvailability(selectedDate, time);
-                if (isAvailable) {
-                    availableSlots.push(time);
-                }
-            }
+            els.submitBtn.disabled = true;
+            els.submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i> Processando...';
+            lucide.createIcons();
 
-            timeSelect.disabled = false;
-            if (availableSlots.length === 0) {
-                timeSelect.innerHTML = '<option value="">Dia lotado :(</option>';
-            } else {
-                timeSelect.innerHTML = '<option value="">Selecione um horário</option>' +
-                    availableSlots.map(time => `<option value="${time}">${time}</option>`).join('');
-            }
-        }
-
-        // ============= CLIENT VIEW =============
-        function initClientView() {
-            const today = new Date().toISOString().split('T')[0];
-            const dateInput = document.getElementById('date');
-            dateInput.min = today;
-            dateInput.value = today;
-
-            dateInput.addEventListener('change', function(e) {
-                updateTimeSlots(e.target.value);
-            });
-            updateTimeSlots(today);
-
-            // Máscara de Telefone
-            document.getElementById('phone').addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 0) {
-                    if (value.length <= 11) {
-                        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                    }
-                    e.target.value = value;
-                }
-            });
-
-            // Submit
-            document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const btn = e.target.querySelector('button');
-                const originalText = btn.innerText;
-                
-                // Loading UI
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processando...';
-
-                const date = document.getElementById('date').value;
-                const time = document.getElementById('time').value;
-
-                // Double check
-                const isAvailable = await checkSlotAvailability(date, time);
-                if (!isAvailable) {
-                    showToast('Horário esgotado! Por favor selecione outro.', 'error');
-                    updateTimeSlots(date);
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                    return;
-                }
-
-                const reservation = {
-                    name: document.getElementById('name').value,
-                    phone: document.getElementById('phone').value,
-                    date: date,
-                    time: time,
-                    people: document.getElementById('people').value,
-                    status: 'pending'
-                };
-
-                try {
-                    let reservationId;
-                    if (db) {
-                        const docRef = await db.collection('reservations').add({
-                            ...reservation,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        reservationId = docRef.id;
-                    } else {
-                        const result = await storage.addReservation(reservation);
-                        reservationId = result.id;
-                    }
-                    showConfirmationUI(reservation, reservationId);
-                } catch (error) {
-                    console.error(error);
-                    showToast('Erro ao salvar. Tente novamente.', 'error');
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                }
-            });
-        }
-
-        function showConfirmationUI(reservation, id) {
-            const formattedDate = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
-            
-            document.getElementById('confName').innerText = reservation.name;
-            document.getElementById('confDate').innerText = `${formattedDate} às ${reservation.time}`;
-            document.getElementById('confPeople').innerText = `${reservation.people} pessoas`;
-            document.getElementById('confId').innerText = '#' + id.substring(0, 6).toUpperCase();
-
-            document.getElementById('reservationFormWrapper').classList.add('hidden');
-            document.getElementById('confirmationScreen').classList.remove('hidden');
-            showToast('Reserva solicitada com sucesso!');
-        }
-
-        // ============= HOST VIEW =============
-        function initHostView() {
-            // Data Header
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('currentDateDisplay').textContent = new Date().toLocaleDateString('pt-BR', options);
-
-            // Filtro padrão: Hoje
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('filterDate').value = today;
-
-            // Listeners
-            document.getElementById('filterDate').addEventListener('change', loadReservations);
-            document.getElementById('filterTime').addEventListener('change', loadReservations);
-            document.getElementById('filterStatus').addEventListener('change', loadReservations);
-
-            // Load Data
-            if (db) {
-                db.collection('reservations').onSnapshot(() => loadReservations());
-            } else {
-                storage.onSnapshot(() => loadReservations());
-            }
-            loadReservations();
-        }
-
-        async function loadReservations() {
-            const filters = {
-                date: document.getElementById('filterDate').value,
-                time: document.getElementById('filterTime').value,
-                status: document.getElementById('filterStatus').value
+            const reservation = {
+                name: els.nameInput.value,
+                phone: els.phoneInput.value,
+                date: els.dateInput.value,
+                time: els.timeInput.value,
+                people: els.peopleInput.value,
+                status: 'pending',
+                createdAt: serverTimestamp()
             };
 
             try {
-                let reservations = [];
-                if (db) {
-                    let query = db.collection('reservations');
-                    if (filters.date) query = query.where('date', '==', filters.date);
-                    if (filters.time) query = query.where('time', '==', filters.time);
-                    if (filters.status) query = query.where('status', '==', filters.status);
-                    
-                    const snapshot = await query.get();
-                    reservations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    // Client-side sort for complex Firebase sorting limitations without indexes
-                    reservations.sort((a, b) => a.time.localeCompare(b.time));
-                } else {
-                    reservations = await storage.getReservations(filters);
+                // Double check availability (Race condition protection)
+                // Simplified query to avoid composite index error
+                const q = query(
+                    collection(db, 'artifacts', appId, 'public', 'data', 'reservations'),
+                    where('date', '==', reservation.date)
+                );
+                const snapshot = await getDocs(q);
+                
+                // Manual filtering in memory
+                const existing = snapshot.docs.filter(d => {
+                    const data = d.data();
+                    return data.time === reservation.time && ['confirmed', 'pending'].includes(data.status);
+                });
+                
+                if (existing.length >= MAX_RESERVATIONS_PER_SLOT) {
+                    alert('Desculpe! Este horário acabou de ser preenchido. Por favor, escolha outro.');
+                    loadTimeSlots(reservation.date);
+                    els.submitBtn.disabled = false;
+                    els.submitBtn.innerHTML = 'Confirmar Reserva <i data-lucide="arrow-right" class="w-5 h-5 ml-2"></i>';
+                    lucide.createIcons();
+                    return;
                 }
 
-                updateStats(reservations);
-                renderHostGrid(reservations);
+                // Add Document
+                const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'reservations'), reservation);
+                
+                // Show Success
+                els.bookingCard.classList.add('hidden');
+                els.successCard.classList.remove('hidden');
+                
+                // Fill details
+                document.getElementById('confirmName').textContent = reservation.name;
+                document.getElementById('confirmDate').textContent = new Date(reservation.date + 'T00:00:00').toLocaleDateString('pt-BR');
+                document.getElementById('confirmTime').textContent = reservation.time;
+                document.getElementById('confirmPeople').textContent = reservation.people;
+                document.getElementById('confirmId').textContent = '#' + docRef.id.substring(0, 6).toUpperCase();
+
             } catch (error) {
-                console.error("Erro load:", error);
-                showToast("Erro ao carregar dados", "error");
+                console.error("Booking Error:", error);
+                alert("Ocorreu um erro ao salvar sua reserva. Tente novamente.");
+                els.submitBtn.disabled = false;
+                els.submitBtn.innerHTML = 'Confirmar Reserva';
             }
         }
 
-        function updateStats(reservations) {
-            document.getElementById('statTotal').innerText = reservations.length;
-            document.getElementById('statPending').innerText = reservations.filter(r => r.status === 'pending').length;
-            document.getElementById('statConfirmed').innerText = reservations.filter(r => r.status === 'confirmed').length;
+        // --- HOST VIEW LOGIC ---
+        function initHostView() {
+            els.clientView.classList.add('hidden');
+            els.hostView.classList.remove('hidden');
+            
+            // Populate Time Filter
+            els.filterTime.innerHTML = '<option value="">Horário: Todos</option>' + 
+                AVAILABLE_TIMES.map(t => `<option value="${t}">${t}</option>`).join('');
+
+            // Set default date filter to today
+            const today = new Date().toISOString().split('T')[0];
+            els.filterDate.value = today;
+
+            // Clock
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('hostClock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                document.getElementById('hostDate').textContent = now.toLocaleDateString('pt-BR', {weekday: 'long', day:'numeric', month:'short'});
+            }, 1000);
+
+            // Listeners
+            els.filterDate.addEventListener('change', subscribeToReservations);
+            els.filterStatus.addEventListener('change', renderReservationsList);
+            els.filterTime.addEventListener('change', renderReservationsList);
+
+            // Start Realtime Listener
+            subscribeToReservations();
         }
 
-        function renderHostGrid(reservations) {
-            const container = document.getElementById('reservationsList');
-            
-            if (reservations.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full flex flex-col items-center justify-center py-12 text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
-                        <i class="fa-regular fa-folder-open text-4xl mb-3"></i>
-                        <p>Nenhuma reserva encontrada para este filtro.</p>
+        let unsubscribeReservations = null;
+        let allReservations = []; // Store locally for client-side filtering (optimization for small datasets)
+
+        function subscribeToReservations() {
+            if (unsubscribeReservations) unsubscribeReservations();
+
+            const date = els.filterDate.value;
+            if (!date) return;
+
+            els.reservationsGrid.innerHTML = `
+                <div class="col-span-full py-12 text-center text-brand-muted">
+                    <i data-lucide="loader-2" class="w-8 h-8 mx-auto mb-2 animate-spin"></i>
+                    <p>Atualizando...</p>
+                </div>
+            `;
+            lucide.createIcons();
+
+            // Query by date only, filter others in memory to avoid needing complex composite indexes
+            const q = query(
+                collection(db, 'artifacts', appId, 'public', 'data', 'reservations'),
+                where('date', '==', date)
+            );
+
+            unsubscribeReservations = onSnapshot(q, (snapshot) => {
+                allReservations = [];
+                snapshot.forEach(doc => {
+                    allReservations.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by Time
+                allReservations.sort((a, b) => a.time.localeCompare(b.time));
+                
+                renderReservationsList();
+            }, (error) => {
+                console.error("Snapshot Error:", error);
+                els.reservationsGrid.innerHTML = '<div class="text-brand-error">Erro ao carregar dados. Verifique permissões.</div>';
+            });
+        }
+
+        function renderReservationsList() {
+            const statusFilter = els.filterStatus.value;
+            const timeFilter = els.filterTime.value;
+
+            const filtered = allReservations.filter(r => {
+                if (statusFilter && r.status !== statusFilter) return false;
+                if (timeFilter && r.time !== timeFilter) return false;
+                return true;
+            });
+
+            // Update Stats
+            els.stats.total.textContent = filtered.length;
+            els.stats.confirmed.textContent = filtered.filter(r => r.status === 'confirmed').length;
+            els.stats.pending.textContent = filtered.filter(r => r.status === 'pending').length;
+            els.stats.pax.textContent = filtered.reduce((acc, curr) => acc + parseInt(curr.people || 0), 0);
+
+            if (filtered.length === 0) {
+                els.reservationsGrid.innerHTML = `
+                    <div class="col-span-full py-20 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand-card border border-white/5 mb-4">
+                            <i data-lucide="calendar-x" class="w-8 h-8 text-brand-muted"></i>
+                        </div>
+                        <h3 class="text-white font-serif text-lg">Nenhuma reserva encontrada</h3>
+                        <p class="text-brand-muted text-sm mt-1">Ajuste os filtros ou aguarde novas solicitações.</p>
                     </div>
                 `;
+                lucide.createIcons();
                 return;
             }
 
-            container.innerHTML = reservations.map(r => {
-                const cleanPhone = r.phone.replace(/\D/g, '');
-                const whatsappNumber = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
-                const formattedDate = new Date(r.date + 'T00:00:00').toLocaleDateString('pt-BR');
-                
-                const whatsappMsg = encodeURIComponent(
-                    `Olá ${r.name}! 👋\n\nSua reserva no Bistrô Elegance foi confirmada! ✅\n\n` +
-                    `📅 Data: ${formattedDate}\n⏰ Horário: ${r.time}\n👥 Pessoas: ${r.people}\n\n` +
-                    `Aguardamos vocês! 🍽️`
-                );
+            els.reservationsGrid.innerHTML = filtered.map(r => createReservationCard(r)).join('');
+            lucide.createIcons();
+        }
 
-                const statusColors = {
-                    'pending': 'bg-orange-100 text-orange-700 border-orange-200',
-                    'confirmed': 'bg-green-100 text-green-700 border-green-200',
-                    'present': 'bg-blue-100 text-blue-700 border-blue-200',
-                    'noshow': 'bg-red-100 text-red-700 border-red-200'
-                };
-                
-                const statusLabels = {
-                    'pending': 'Pendente', 'confirmed': 'Confirmada', 'present': 'Presente', 'noshow': 'No-Show'
-                };
+        function createReservationCard(r) {
+            const statusConfig = {
+                pending: { color: 'text-brand-gold', bg: 'bg-brand-gold/10', label: 'Pendente', icon: 'clock' },
+                confirmed: { color: 'text-brand-success', bg: 'bg-brand-success/10', label: 'Confirmada', icon: 'check-circle' },
+                present: { color: 'text-blue-400', bg: 'bg-blue-400/10', label: 'Presente', icon: 'user-check' },
+                noshow: { color: 'text-brand-error', bg: 'bg-brand-error/10', label: 'No-Show', icon: 'x-circle' }
+            };
+            
+            const s = statusConfig[r.status] || statusConfig.pending;
 
-                return `
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow p-5 flex flex-col justify-between h-full relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-1 h-full ${r.status === 'confirmed' ? 'bg-green-500' : (r.status === 'pending' ? 'bg-orange-500' : 'bg-gray-300')}"></div>
-                    
-                    <div>
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="font-bold text-gray-800 text-lg truncate pr-2">${r.name}</h3>
-                            <span class="text-xs px-2 py-1 rounded-full border font-medium ${statusColors[r.status] || 'bg-gray-100'}">
-                                ${statusLabels[r.status]}
-                            </span>
+            // WhatsApp Message Gen
+            const cleanPhone = r.phone.replace(/\D/g, '');
+            const waNum = cleanPhone.startsWith('55') ? cleanPhone : `55${cleanPhone}`;
+            const formattedDate = new Date(r.date + 'T00:00:00').toLocaleDateString('pt-BR');
+            const waMsg = encodeURIComponent(
+                `Olá ${r.name}! 👋\n\n` +
+                `Sua reserva foi confirmada! ✅\n\n` +
+                `📋 *Detalhes da Reserva:*\n` +
+                `📅 Data: ${formattedDate}\n` +
+                `⏰ Horário: ${r.time}\n` +
+                `👥 Pessoas: ${r.people}\n\n` +
+                `Por favor, chegue com 10 minutos de antecedência.\n\n` +
+                `Aguardamos vocês! 🍽️`
+            );
+
+            return `
+                <div class="glass rounded-xl p-5 relative group hover:border-brand-orange/30 transition-all duration-300">
+                    <!-- Header -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-white text-lg leading-tight mb-1">${r.name}</h3>
+                            <div class="flex items-center gap-2 text-brand-muted text-sm">
+                                <i data-lucide="phone" class="w-3 h-3"></i> ${r.phone}
+                            </div>
                         </div>
-                        
-                        <div class="space-y-2 text-sm text-gray-600 mb-4">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-regular fa-clock w-4 text-center"></i> 
-                                <span class="font-medium text-gray-900">${r.time}</span>
-                                <span class="text-xs text-gray-400">(${formattedDate})</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-users w-4 text-center"></i> 
-                                ${r.people} pessoas
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-brands fa-whatsapp w-4 text-center"></i> 
-                                ${r.phone}
-                            </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${s.bg} ${s.color}">
+                            <i data-lucide="${s.icon}" class="w-3 h-3"></i> ${s.label}
+                        </span>
+                    </div>
+                    
+                    <!-- Details -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="bg-brand-dark rounded-lg p-2 border border-white/5">
+                            <div class="text-[10px] text-brand-muted uppercase tracking-wider">Horário</div>
+                            <div class="text-white font-mono font-bold">${r.time}</div>
+                        </div>
+                        <div class="bg-brand-dark rounded-lg p-2 border border-white/5">
+                            <div class="text-[10px] text-brand-muted uppercase tracking-wider">Pessoas</div>
+                            <div class="text-white font-mono font-bold">${r.people}</div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 mt-auto pt-4 border-t border-gray-100">
-                        <a href="https://wa.me/${whatsappNumber}?text=${whatsappMsg}" target="_blank"
-                           onclick="updateStatus('${r.id}', 'confirmed')"
-                           class="col-span-2 flex items-center justify-center gap-2 bg-green-50 text-green-600 hover:bg-green-100 py-2 rounded-lg text-sm font-medium transition-colors ${r.status !== 'pending' ? 'opacity-50 pointer-events-none' : ''}">
-                            <i class="fa-brands fa-whatsapp"></i> Confirmar
+                    <!-- Actions -->
+                    <div class="grid grid-cols-3 gap-2 mt-2">
+                        <a href="https://wa.me/${waNum}?text=${waMsg}" target="_blank" 
+                           onclick="window.updateStatus('${r.id}', 'confirmed')"
+                           class="flex items-center justify-center p-2 rounded-lg bg-brand-success/10 text-brand-success hover:bg-brand-success hover:text-white transition-colors border border-brand-success/20 ${r.status !== 'pending' ? 'opacity-50 pointer-events-none' : ''}" title="Confirmar no WhatsApp">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i>
                         </a>
                         
-                        <button onclick="updateStatus('${r.id}', 'present')"
-                           class="flex items-center justify-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-2 rounded-lg text-sm font-medium transition-colors ${r.status !== 'confirmed' ? 'opacity-30 cursor-not-allowed' : ''}" ${r.status !== 'confirmed' ? 'disabled' : ''}>
-                           <i class="fa-solid fa-check"></i> Check-in
+                        <button onclick="window.updateStatus('${r.id}', 'present')"
+                           class="flex items-center justify-center p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-colors border border-blue-500/20 ${r.status !== 'confirmed' ? 'opacity-50 pointer-events-none' : ''}" title="Check-in">
+                            <i data-lucide="user-check" class="w-5 h-5"></i>
                         </button>
                         
-                        <button onclick="updateStatus('${r.id}', 'noshow')"
-                           class="flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-lg text-sm font-medium transition-colors ${['present','noshow'].includes(r.status) ? 'opacity-30 cursor-not-allowed' : ''}" ${['present','noshow'].includes(r.status) ? 'disabled' : ''}>
-                           <i class="fa-solid fa-xmark"></i> Falta
+                        <button onclick="window.updateStatus('${r.id}', 'noshow')"
+                           class="flex items-center justify-center p-2 rounded-lg bg-brand-error/10 text-brand-error hover:bg-brand-error hover:text-white transition-colors border border-brand-error/20 ${r.status === 'present' || r.status === 'noshow' ? 'opacity-50 pointer-events-none' : ''}" title="Não Compareceu">
+                            <i data-lucide="user-x" class="w-5 h-5"></i>
                         </button>
                     </div>
-                </div>`;
-            }).join('');
+                </div>
+            `;
         }
 
-        async function updateStatus(id, newStatus) {
+        // Global function for onclick handlers in HTML string
+        window.updateStatus = async (id, status) => {
             try {
-                if (db) {
-                    await db.collection('reservations').doc(id).update({
-                        status: newStatus,
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } else {
-                    await storage.updateReservation(id, { status: newStatus });
-                }
-                
-                showToast(`Status atualizado para ${newStatus}`, 'success');
-                // loadReservations é chamado automaticamente pelo listener
-            } catch (error) {
-                console.error("Update error:", error);
-                showToast("Erro ao atualizar status", "error");
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'reservations', id);
+                await updateDoc(ref, { 
+                    status: status,
+                    updatedAt: serverTimestamp()
+                });
+                // No need to reload, onSnapshot handles it
+            } catch (e) {
+                console.error("Update error:", e);
+                alert("Erro ao atualizar status.");
             }
-        }
+        };
+
+        // Start
+        init();
+
     </script>
 </body>
 </html>
